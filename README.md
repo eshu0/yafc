@@ -1,2 +1,2 @@
-# yafc
+# YAFT
 Yet Another File Tool
