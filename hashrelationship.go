@@ -15,12 +15,14 @@ import (
 const HashToFilesTableName = "hashtofiles"
 const HashToFilesIDColumn = "id"
 const HashToFilesHashIDColumn = "hashid"
-const HashToFilesFilesIDColumn = "fileid"
+const HashToFilesPathColumn = "path"
+const HashToFilesTypeColumn = "type"
 
 type HashRelationship struct {
-	IDs       []int64
-	FilePaths []*FileData
-	Hash      *HashData
+	ID   int64
+	Path string
+	Type int
+	Hash *HashData
 }
 
 func (hr *HashRelationship) GenHashData(Logger sli.ISimpleLogger, FilePath string, isdir bool) bool {
@@ -50,12 +52,19 @@ func (hr *HashRelationship) GenHashData(Logger sli.ISimpleLogger, FilePath strin
 			hr.Hash = &fh
 		}
 
-		hr.addFilepath(Logger, FilePath, isdir)
+		//hr.addFilepath(Logger, FilePath, isdir)
+		if isdir {
+			hr.Type = 0
+		} else {
+			hr.Type = 1
+		}
+
 		return true
 	}
 
 }
 
+/*
 func (hr *HashRelationship) addFilepath(Logger sli.ISimpleLogger, path string, isdir bool) {
 
 	files := hr.FilePaths
@@ -63,26 +72,22 @@ func (hr *HashRelationship) addFilepath(Logger sli.ISimpleLogger, path string, i
 	fn.ID = -1
 	fn.Path = path
 
-	if isdir {
-		fn.Type = 0
-	} else {
-		fn.Type = 1
-	}
+
 
 	files = append(files, &fn)
 	hr.FilePaths = files
 
 }
-
+*/
 func CreateHashRelationshipTable(fds *DataStorage) {
-	statement, _ := fds.database.Prepare("CREATE TABLE IF NOT EXISTS " + HashToFilesTableName + " ([" + HashToFilesIDColumn + "] INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, [" + HashToFilesHashIDColumn + "] INTEGER REFERENCES " + HashsTableName + "(" + HashsIDColumn + ") , [" + HashToFilesFilesIDColumn + "] INTEGER REFERENCES " + FilesTableName + "(" + FilesIDColumn + ") )")
+	statement, _ := fds.database.Prepare("CREATE TABLE IF NOT EXISTS " + HashToFilesTableName + " ([" + HashToFilesIDColumn + "] INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, [" + HashToFilesHashIDColumn + "] INTEGER REFERENCES " + HashsTableName + "(" + HashsIDColumn + ") ,[" + HashToFilesPathColumn + "] TEXT NOT NULL UNIQUE, [" + HashToFilesTypeColumn + "] INTEGER NOT NULL)")
 	statement.Exec()
 }
 
 func (fds *DataStorage) AddHashRelationship(hr *HashRelationship) { //(int64, []int64) {
 
 	var hidtoinsert int64
-	var fidtoinsert int64
+	//var fidtoinsert int64
 
 	results := fds.FindHashData(hr.Hash.Data)
 	if len(results) == 0 {
@@ -91,41 +96,136 @@ func (fds *DataStorage) AddHashRelationship(hr *HashRelationship) { //(int64, []
 		hidtoinsert = results[0].ID
 	}
 	hr.Hash.ID = hidtoinsert
+	/*
+		for _, fd := range hr.FilePaths {
+			results := fds.FindFileData(fd.Path)
+			if len(results) == 0 {
+				fidtoinsert = fds.AddFileData(fd)
+			} else {
+				fidtoinsert = results[0].ID
+			}
+	*/
+	//hrres := fds.GetHashRelationshipByHash(hidtoinsert)
+	//if len(hrres) == 0 {
+	//fmt.Println(fmt.Sprintf("adding %d to %d", hidtoinsert, fidtoinsert))
+	fmt.Println(fmt.Sprintf("adding %d to %s", hidtoinsert, hr.Path))
 
-	for _, fd := range hr.FilePaths {
-		results := fds.FindFileData(fd.Path)
-		if len(results) == 0 {
-			fidtoinsert = fds.AddFileData(fd)
-		} else {
-			fidtoinsert = results[0].ID
-		}
+	//statement, _ := fds.database.Prepare("INSERT INTO " + HashToFilesTableName + " (" + HashToFilesHashIDColumn + "," + HashToFilesFilesIDColumn + ") VALUES (?,?)")
+	//statement.Exec(hidtoinsert, fidtoinsert)
+	statement, _ := fds.database.Prepare("INSERT INTO " + HashToFilesTableName + " (" + HashToFilesHashIDColumn + "," + HashToFilesPathColumn + "," + HashToFilesTypeColumn + ") VALUES (?,?,?)")
+	statement.Exec(hidtoinsert, hr.Path, hr.Type)
+	//} else {
+	//	for _, hre := range hrres {
+	//		fmt.Println(fmt.Sprintf("Was adding %d to %d Relationship however it exists at %s", hidtoinsert, fidtoinsert, hre))
+	//	}
+	//}
 
-		hrres := fds.GetHashRelationshipByHashandFile(hidtoinsert, fidtoinsert)
-		if len(hrres) == 0 {
-			fmt.Println(fmt.Sprintf("adding %d to %d", hidtoinsert, fidtoinsert))
-			statement, _ := fds.database.Prepare("INSERT INTO " + HashToFilesTableName + " (" + HashToFilesHashIDColumn + "," + HashToFilesFilesIDColumn + ") VALUES (?,?)")
-			statement.Exec(hidtoinsert, fidtoinsert)
+	//}
+
+}
+
+func (fds *DataStorage) GetAllHashRelationships() []*HashRelationship {
+	rows, _ := fds.database.Query("SELECT " + HashToFilesIDColumn + ", " + HashToFilesHashIDColumn + ", " + HashToFilesPathColumn + ", " + HashToFilesTypeColumn + " FROM " + HashToFilesTableName)
+	return fds.ParseHashRelationshipRows(rows)
+}
+
+func (fds *DataStorage) GetHashRelationshipByHash(hashid int64) []*HashRelationship {
+	statement, _ := fds.database.Prepare("SELECT " + HashToFilesIDColumn + ", " + HashToFilesHashIDColumn + ", " + HashToFilesPathColumn + ", " + HashToFilesTypeColumn + " FROM " + HashToFilesTableName + " WHERE " + HashToFilesHashIDColumn + " = ? ")
+	rows, _ := statement.Query(hashid)
+	return fds.ParseHashRelationshipRows(rows)
+}
+
+func (fds *DataStorage) ParseHashRelationshipRows(rows *sql.Rows) []*HashRelationship {
+	var id int64
+	var hashid int64
+	var path string
+	var typei int
+
+	var results []*HashRelationship
+	var lasthash *HashData
+
+	for rows.Next() {
+		rows.Scan(&id, &hashid, &path, &typei)
+		hr := HashRelationship{}
+		hr.ID = id
+		hr.Path = path
+		hr.Type = typei
+
+		if lasthash == nil {
+			//	fmt.Println("READ: " + strconv.Itoa(id) + ": " + hash)
+			lasthash = fds.GetHashData(hashid)
+			if lasthash == nil {
+				break
+			}
+			/*
+				if results[lasthash.Data] == nil {
+					hr.Hash = lasthash
+					results[lasthash.Data] = &hr
+				}
+			*/
 		} else {
-			for _, hre := range hrres {
-				fmt.Println(fmt.Sprintf("Was adding %d to %d Relationship however it exists at %s", hidtoinsert, fidtoinsert, hre))
+
+			if lasthash.ID != hashid {
+				lasthash = fds.GetHashData(hashid)
+				/*
+					if results[lasthash.Data] == nil {
+						hr := HashRelationship{}
+						hr.Hash = lasthash
+						results[lasthash.Data] = &hr
+					}
+				*/
 			}
 		}
-
+		hr.Hash = lasthash
+		results = append(results, &hr)
 	}
 
+	return results
 }
 
-func (fds *DataStorage) GetAllHashRelationships() map[string]*HashRelationship {
-	rows, _ := fds.database.Query("SELECT " + HashToFilesIDColumn + ", " + HashToFilesHashIDColumn + ", " + HashToFilesFilesIDColumn + " FROM " + HashToFilesTableName)
-	return fds.ParseHashRelationshipRows(rows)
+func (fds *DataStorage) ParseHashRelationshipRows1(rows *sql.Rows) map[string]*HashRelationship {
+	var id int64
+	var hashid int64
+	var path string
+	var typei int
+
+	var results map[string]*HashRelationship
+	results = make(map[string]*HashRelationship)
+
+	var lasthash *HashData
+
+	for rows.Next() {
+		rows.Scan(&id, &hashid, &path, &typei)
+
+		if lasthash == nil {
+			//	fmt.Println("READ: " + strconv.Itoa(id) + ": " + hash)
+			lasthash = fds.GetHashData(hashid)
+			if lasthash == nil {
+				break
+			}
+
+			if results[lasthash.Data] == nil {
+				hr := HashRelationship{}
+				hr.Hash = lasthash
+				results[lasthash.Data] = &hr
+			}
+
+		} else {
+			if lasthash.ID != hashid {
+				lasthash = fds.GetHashData(hashid)
+
+				if results[lasthash.Data] == nil {
+					hr := HashRelationship{}
+					hr.Hash = lasthash
+					results[lasthash.Data] = &hr
+				}
+			}
+		}
+	}
+	return results
 }
 
-func (fds *DataStorage) GetHashRelationshipByHashandFile(hashid int64, fileid int64) map[string]*HashRelationship {
-	statement, _ := fds.database.Prepare("SELECT " + HashToFilesIDColumn + ", " + HashToFilesHashIDColumn + ", " + HashToFilesFilesIDColumn + " FROM " + HashToFilesTableName + " WHERE " + HashToFilesHashIDColumn + " = ? AND " + HashToFilesFilesIDColumn + " = ?")
-	rows, _ := statement.Query(hashid, fileid)
-	return fds.ParseHashRelationshipRows(rows)
-}
-
+/*
 func (fds *DataStorage) ParseHashRelationshipRows(rows *sql.Rows) map[string]*HashRelationship {
 	var id int64
 	var hashid int64
@@ -194,17 +294,14 @@ func (fds *DataStorage) ParseHashRelationshipRows(rows *sql.Rows) map[string]*Ha
 	}
 	return results
 }
-
+*/
 func (hr *HashRelationship) String() string {
-	b := ":::: IDs ::: \n"
-	for _, id := range hr.IDs {
-		b += fmt.Sprintf("\t %d\n", id)
-	}
+	b := ":::: ID ::: \n"
+	b += fmt.Sprintf("\t %d\n", hr.ID)
 	b += ":::: Hash ::: \n"
 	b += fmt.Sprintf("\t %s", hr.Hash)
-	b += ":::: Files ::: \n"
-	for _, fd := range hr.FilePaths {
-		b += fmt.Sprintf("\t %s\n", fd)
-	}
+	b += ":::: File ::: \n"
+	b += fmt.Sprintf("\t %s\n", hr.Path)
+
 	return b
 }

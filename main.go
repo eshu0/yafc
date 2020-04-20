@@ -35,7 +35,7 @@ func WalkDir(fds *DataStorage, Logger sli.ISimpleLogger) filepath.WalkFunc {
 
 			fwn := FilenameWithoutExtension(abs)
 			if fwn[0] != '.' {
-				fwn += ".yaftl"
+				fwn += ".yaft"
 				hd := &HashData{}
 				ok, _ := hd.CheckFileExists(fwn)
 				if ok {
@@ -44,17 +44,19 @@ func WalkDir(fds *DataStorage, Logger sli.ISimpleLogger) filepath.WalkFunc {
 						hd = data
 					}
 				} else {
-					//		if !info.IsDir() {
-					hr := HashRelationship{}
+					if !info.IsDir() {
+						hr := HashRelationship{}
 
-					if hr.GenHashData(Logger, abs, info.IsDir()) {
-						fmt.Printf("%s %s\n", abs, hr.Hash.Data)
-						fds.AddHashRelationship(&hr)
-						hr.Hash.Save(fwn, Logger)
+						if hr.GenHashData(Logger, abs, info.IsDir()) {
+							fmt.Printf("%s %s\n", abs, hr.Hash.Data)
+							hr.Path = abs
+							fds.AddHashRelationship(&hr)
+							hr.Hash.Save(fwn, Logger)
+						}
 					}
 				}
 			} else {
-				fmt.Printf("Hideen file %s \n", fwn)
+				fmt.Printf("Hidden file %s \n", fwn)
 			}
 
 		}
@@ -104,13 +106,13 @@ func main() {
 		for _, hd := range results {
 			fmt.Println(hd)
 		}
-
-		fmt.Println("Files: ")
-		results1 := fds.GetAllFileData()
-		for _, fd := range results1 {
-			fmt.Println(fd)
-		}
-
+		/*
+			fmt.Println("Files: ")
+			results1 := fds.GetAllFileData()
+			for _, fd := range results1 {
+				fmt.Println(fd)
+			}
+		*/
 		fmt.Println("Relations: ")
 		results2 := fds.GetAllHashRelationships()
 		for _, hr := range results2 {

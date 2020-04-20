@@ -13,7 +13,6 @@ type DataStorage struct {
 
 func (fds *DataStorage) Create() {
 	fds.database, _ = sql.Open("sqlite3", fds.Filename)
-	CreateFilesTable(fds)
 	CreateHashsTable(fds)
 	CreateHashRelationshipTable(fds)
 }
