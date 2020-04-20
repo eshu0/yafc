@@ -4,17 +4,22 @@ import (
 	"database/sql"
 
 	_ "github.com/mattn/go-sqlite3"
+	sli "github.com/eshu0/simplelogger/interfaces"
+
 )
 
 type DataStorage struct {
 	database *sql.DB
 	Filename string
+	Log sli.ISimpleLogger
 }
 
-func (fds *DataStorage) Create() {
+func (fds *DataStorage) Create(log sli.ISimpleLogger) {
 	fds.database, _ = sql.Open("sqlite3", fds.Filename)
+	fds.Log = log
 	CreateHashsTable(fds)
 	CreateHashRelationshipTable(fds)
+
 }
 
 func (fds *DataStorage) Clear() {

@@ -98,7 +98,7 @@ func main() {
 
 	fds := &DataStorage{}
 	fds.Filename = *dbname
-	fds.Create()
+	fds.Create(&slog)
 
 	if inputdir != nil && *inputdir != "" {
 

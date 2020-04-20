@@ -83,25 +83,43 @@ func (hd *HashData) LoadHashData(FilePath string, Log sli.ISimpleLogger) (*HashD
 }
 
 func CreateHashsTable(fds *DataStorage) {
-	statement, _ := fds.database.Prepare("CREATE TABLE IF NOT EXISTS " + HashsTableName + " ([" + HashsIDColumn + "] INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,[" + HashsDataColumn + "] NVARCHAR(160) NOT NULL)")
-	statement.Exec()
+	statement, _ := fds.database.Prepare("CREATE TABLE IF NOT EXISTS " + HashsTableName + " ([" + HashsIDColumn + "] INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,[" + HashsDataColumn + "] NVARCHAR(160) NOT NULL UNIQUE)")
+	_, err := statement.Exec()
+	if(err !=  nil){
+		fds.Log.LogErrorE("CreateHashsTable",err)
+		return
+	}
 }
 
 func ClearHashData(fds *DataStorage) {
 	statement, _ := fds.database.Prepare("DELETE FROM " + HashsTableName)
-	statement.Exec()
+	_, err := statement.Exec()
+	if(err !=  nil){
+		fds.Log.LogErrorE("ClearHashData",err)
+		return
+	}
 }
 
 func (fds *DataStorage) AddHashData(hr *HashData) int64 {
 	statement, _ := fds.database.Prepare("INSERT INTO " + HashsTableName + " (" + HashsDataColumn + ") VALUES (?)")
-	res, _ := statement.Exec(hr.Data)
-	lastid, _ := res.LastInsertId()
-	return lastid
+	res, err := statement.Exec(hr.Data)
+	if(err ==  nil){
+		lastid, _ := res.LastInsertId()
+		return lastid
+	}else{
+		fds.Log.LogErrorE("AddHashData",err)
+		return -1
+	}
+
 }
 
 func (fds *DataStorage) GetHashData(ID int64) *HashData {
 	statement, _ := fds.database.Prepare("SELECT " + HashsIDColumn + ", " + HashsDataColumn + " FROM " + HashsTableName + " WHERE " + HashsIDColumn + " = ?")
-	rows, _ := statement.Query(ID)
+	rows, err := statement.Query(ID)
+	if(err !=  nil){
+		fds.Log.LogErrorE("GetHashData",err)
+		return nil
+	}
 	res := fds.ParseHashDataRows(rows)
 	if len(res) == 0 {
 		return nil
