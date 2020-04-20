@@ -87,6 +87,11 @@ func CreateHashsTable(fds *DataStorage) {
 	statement.Exec()
 }
 
+func ClearHashData(fds *DataStorage) {
+	statement, _ := fds.database.Prepare("DELETE FROM " + HashsTableName)
+	statement.Exec()
+}
+
 func (fds *DataStorage) AddHashData(hr *HashData) int64 {
 	statement, _ := fds.database.Prepare("INSERT INTO " + HashsTableName + " (" + HashsDataColumn + ") VALUES (?)")
 	res, _ := statement.Exec(hr.Data)

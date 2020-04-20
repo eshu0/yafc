@@ -84,6 +84,11 @@ func CreateHashRelationshipTable(fds *DataStorage) {
 	statement.Exec()
 }
 
+func ClearHashRelationshipTable(fds *DataStorage) {
+	statement, _ := fds.database.Prepare("DELETE FROM " + HashToFilesTableName)
+	statement.Exec()
+}
+
 func (fds *DataStorage) AddHashRelationship(hr *HashRelationship) { //(int64, []int64) {
 
 	var hidtoinsert int64

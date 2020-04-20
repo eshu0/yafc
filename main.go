@@ -16,7 +16,7 @@ func FilenameWithoutExtension(fn string) string {
 	return strings.TrimSuffix(fn, path.Ext(fn))
 }
 
-func WalkDir(fds *DataStorage, Logger sli.ISimpleLogger) filepath.WalkFunc {
+func WalkDir(fds *DataStorage, Logger sli.ISimpleLogger, persist bool) filepath.WalkFunc {
 	return func(path string, info os.FileInfo, err error) error {
 
 		if err != nil {
@@ -29,12 +29,16 @@ func WalkDir(fds *DataStorage, Logger sli.ISimpleLogger) filepath.WalkFunc {
 
 			//fd.FilePath = path
 			abs, err := filepath.Abs(path)
-			if err == nil {
-				fmt.Println("Absolute:", abs)
+			if err != nil {
+				Logger.LogErrorE("Visit - Abs", err)
+				return nil
 			}
 
 			fwn := FilenameWithoutExtension(abs)
-			if fwn[0] != '.' {
+			filename := filepath.Base(abs)
+			fmt.Println("Filename:", filename)
+
+			if filename[0] != '.' {
 				fwn += ".yaft"
 				hd := &HashData{}
 				ok, _ := hd.CheckFileExists(fwn)
@@ -51,7 +55,9 @@ func WalkDir(fds *DataStorage, Logger sli.ISimpleLogger) filepath.WalkFunc {
 							fmt.Printf("%s %s\n", abs, hr.Hash.Data)
 							hr.Path = abs
 							fds.AddHashRelationship(&hr)
-							hr.Hash.Save(fwn, Logger)
+							if persist {
+								hr.Hash.Save(fwn, Logger)
+							}
 						}
 					}
 				}
@@ -78,7 +84,10 @@ func main() {
 	session := flag.String("sessionid", "123", "Session - defaults to 123")
 	dbname := flag.String("dbname", "./yaft.db", "Database defaults to ./yaft.db")
 	inputdir := flag.String("path", "", "")
+	cache := flag.String("cache", "", "")
 	list := flag.String("list", "", "")
+	clear := flag.String("clear", "", "")
+	dupes := flag.String("dupes", "", "")
 
 	flag.Parse()
 
@@ -92,7 +101,10 @@ func main() {
 	fds.Create()
 
 	if inputdir != nil && *inputdir != "" {
-		err := filepath.Walk(*inputdir, WalkDir(fds, &slog))
+
+		persist := (cache != nil && *cache != "")
+
+		err := filepath.Walk(*inputdir, WalkDir(fds, &slog, persist))
 		if err != nil {
 			panic(err)
 		}
@@ -106,13 +118,7 @@ func main() {
 		for _, hd := range results {
 			fmt.Println(hd)
 		}
-		/*
-			fmt.Println("Files: ")
-			results1 := fds.GetAllFileData()
-			for _, fd := range results1 {
-				fmt.Println(fd)
-			}
-		*/
+
 		fmt.Println("Relations: ")
 		results2 := fds.GetAllHashRelationships()
 		for _, hr := range results2 {
@@ -120,4 +126,21 @@ func main() {
 		}
 
 	}
+
+	if clear != nil && *clear != "" {
+		fds.Clear()
+
+	}
+
+	if dupes != nil && *dupes != "" {
+		fmt.Println("Duplicates: ")
+		results1 := fds.GetDuplicateHashes()
+		for k, v := range results1 {
+			fmt.Println("Key ", k)
+			for _, hr := range v {
+				fmt.Println(hr)
+			}
+		}
+	}
+
 }

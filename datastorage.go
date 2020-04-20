@@ -17,6 +17,11 @@ func (fds *DataStorage) Create() {
 	CreateHashRelationshipTable(fds)
 }
 
+func (fds *DataStorage) Clear() {
+	ClearHashData(fds)
+	ClearHashRelationshipTable(fds)
+}
+
 /*
 func db(database *sql.DB) {
 
