@@ -7,6 +7,8 @@ import (
 	"path"
 	"path/filepath"
 	"strings"
+	"encoding/csv"
+
 
 	sl "github.com/eshu0/simplelogger"
 	sli "github.com/eshu0/simplelogger/interfaces"
@@ -82,14 +84,24 @@ func main() {
 
 	filename := flag.String("logfile", "yaft.log", "Filename out - defaults to yaft.log")
 	session := flag.String("sessionid", "123", "Session - defaults to 123")
-	dbname := flag.String("dbname", "./yaft.db", "Database defaults to ./yaft.db")
+	dbname := flag.String("db", "./yaft.db", "Database defaults to ./yaft.db")
 	inputdir := flag.String("path", "", "")
 	cache := flag.String("cache", "", "")
 	list := flag.String("list", "", "")
 	clear := flag.String("clear", "", "")
 	dupes := flag.String("dupes", "", "")
+	dupeids := flag.String("dupeids", "", "")
+	limit := flag.Int("limit", -1, "")
+	savecsv := flag.String("savecsv", "", "")
 
 	flag.Parse()
+
+	savetocsav := false
+
+	if savecsv != nil && *savecsv != "" {
+		savetocsav = true
+	}
+
 
 	slog := sl.NewSimpleLogger(*filename, *session)
 
@@ -133,14 +145,114 @@ func main() {
 	}
 
 	if dupes != nil && *dupes != "" {
+
+		var file *os.File
+		var writer *csv.Writer
+		var err error
+
+		if(savetocsav){
+			file, err = os.Create("results.csv")
+			if err != nil {
+				slog.LogError("CreateCSV", fmt.Sprintf("Cannot create file%s", err.Error()))
+				return
+			}
+			defer file.Close()
+		}
+
 		fmt.Println("Duplicates: ")
-		results1 := fds.GetDuplicateHashes()
+		limitcount := -1
+		if limit != nil && *limit > 0 {
+			limitcount = *limit
+		}
+
+		results1 := fds.GetDuplicateHashes(limitcount)
+
+		SaveDuplicates("./results.json",&slog,results1)
+		if(savetocsav){
+				writer = csv.NewWriter(file)
+				defer writer.Flush()
+		}
+
 		for k, v := range results1 {
 			fmt.Println("Key ", k)
 			for _, hr := range v {
 				fmt.Println(hr)
+
+				if savetocsav {
+					err := writer.Write(hr.CSV())
+					if err != nil {
+						slog.LogError("CreateCSV", fmt.Sprintf("Cannot write to file %s", err.Error()))
+						break
+					}
+				}
+
 			}
 		}
 	}
 
+		if dupeids != nil && *dupeids != "" {
+
+			var file *os.File
+			var writer *csv.Writer
+			var err error
+
+			if(savetocsav){
+				file, err = os.Create("ids.csv")
+				if err != nil {
+					slog.LogError("CreateCSV", fmt.Sprintf("Cannot create file%s", err.Error()))
+					return
+				}
+
+				defer file.Close()
+			}
+
+			fmt.Println("Duplicates: ")
+			limitcount := -1
+			if limit != nil && *limit > 0 {
+				limitcount = *limit
+			}
+
+			results1 := fds.GetDuplicateHashIds(limitcount)
+
+			if(savetocsav){
+					writer = csv.NewWriter(file)
+					defer writer.Flush()
+			}
+
+			var res []string
+			if savetocsav {
+
+				res = []string{}
+				//
+				res = append(res,	"Hash Id")
+				res = append(res,	"Count")
+
+				err := writer.Write(res)
+				if err != nil {
+					slog.LogError("CreateCSV", fmt.Sprintf("Cannot write to file %s", err.Error()))
+					return
+				}
+			}
+
+			for k, v := range results1 {
+				fmt.Printf("%d id = %d \n", k, v)
+				if savetocsav {
+
+					res = []string{}
+					//res = append(res,	fmt.Sprintf("%d", k))
+					res = append(res,	fmt.Sprintf("%d", v.HashId))
+					res = append(res,	fmt.Sprintf("%d", v.Count))
+
+					err := writer.Write(res)
+					if err != nil {
+						slog.LogError("CreateCSV", fmt.Sprintf("Cannot write to file %s", err.Error()))
+						break
+					}
+				}
+
+
+			}
+
+
+	}
 }

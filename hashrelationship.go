@@ -18,6 +18,11 @@ const HashToFilesHashIDColumn = "hashid"
 const HashToFilesPathColumn = "path"
 const HashToFilesTypeColumn = "type"
 
+const HashToFilesViewDelete = "type"
+
+
+//CREATE VIEW IF NOT EXISTS "+HashToFilesViewDelete+" AS "DELETE FROM " + HashToFilesTableName
+
 type HashRelationship struct {
 	ID   int64
 	Path string
@@ -44,6 +49,7 @@ func (hr *HashRelationship) GenHashData(Logger sli.ISimpleLogger, FilePath strin
 
 		//fmt.Printf("%s %x\n", path, sum)
 		Logger.LogInfo("Visit", fmt.Sprintf("%s %x", FilePath, sum))
+		f.Close()
 
 		if hr.Hash == nil {
 			fh := HashData{}
@@ -308,5 +314,13 @@ func (hr *HashRelationship) String() string {
 	b += ":::: File ::: \n"
 	b += fmt.Sprintf("\t %s\n", hr.Path)
 
+	return b
+}
+
+func (hr *HashRelationship) CSV() []string{
+	b := []string{}
+	b = append(b, fmt.Sprintf("%d", hr.ID))
+	b = append(b, fmt.Sprintf("%s", hr.Hash))
+	b = append(b, fmt.Sprintf("%s", hr.Path))
 	return b
 }
