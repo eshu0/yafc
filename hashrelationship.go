@@ -135,6 +135,20 @@ func (fds *DataStorage) AddHashRelationship(hr *HashRelationship) { //(int64, []
 
 }
 
+func (fds *DataStorage) GetFilesByHashId(hashid int64) []string {
+	statement, _ := fds.database.Prepare("SELECT "+ HashToFilesPathColumn +" FROM " + HashToFilesTableName + " WHERE " + HashToFilesHashIDColumn + " = ? ")
+	rows, _ := statement.Query(hashid)
+	var path string
+	var results []string
+
+	for rows.Next() {
+		rows.Scan(&path)
+		results = append(results, path)
+	}
+
+	return results
+}
+
 func (fds *DataStorage) GetAllHashRelationships() []*HashRelationship {
 	rows, _ := fds.database.Query("SELECT " + HashToFilesIDColumn + ", " + HashToFilesHashIDColumn + ", " + HashToFilesPathColumn + ", " + HashToFilesTypeColumn + " FROM " + HashToFilesTableName)
 	return fds.ParseHashRelationshipRows(rows)

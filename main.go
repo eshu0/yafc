@@ -4,81 +4,12 @@ import (
 	"flag"
 	"fmt"
 	"os"
-	"path"
 	"path/filepath"
-	"strings"
 	"encoding/csv"
 
 
 	sl "github.com/eshu0/simplelogger"
-	sli "github.com/eshu0/simplelogger/interfaces"
 )
-
-func FilenameWithoutExtension(fn string) string {
-	return strings.TrimSuffix(fn, path.Ext(fn))
-}
-
-func WalkDir(fds *DataStorage, Logger sli.ISimpleLogger, persist bool) filepath.WalkFunc {
-	return func(path string, info os.FileInfo, err error) error {
-
-		if err != nil {
-			Logger.LogErrorE("Visit", err)
-			return nil
-		}
-		fexts := filepath.Ext(path)
-
-		if strings.ToLower(fexts) != ".yaft" {
-
-			//fd.FilePath = path
-			abs, err := filepath.Abs(path)
-			if err != nil {
-				Logger.LogErrorE("Visit - Abs", err)
-				return nil
-			}
-
-			fwn := FilenameWithoutExtension(abs)
-			filename := filepath.Base(abs)
-			fmt.Println("Filename:", filename)
-
-			if filename[0] != '.' {
-				fwn += ".yaft"
-				hd := &HashData{}
-				ok, _ := hd.CheckFileExists(fwn)
-				if ok {
-					data, ok := hd.LoadHashData(fwn, Logger)
-					if ok {
-						hd = data
-					}
-				} else {
-					if !info.IsDir() {
-						hr := HashRelationship{}
-
-						if hr.GenHashData(Logger, abs, info.IsDir()) {
-							fmt.Printf("%s %s\n", abs, hr.Hash.Data)
-							hr.Path = abs
-							fds.AddHashRelationship(&hr)
-							if persist {
-								hr.Hash.Save(fwn, Logger)
-							}
-						}
-					}
-				}
-			} else {
-				fmt.Printf("Hidden file %s \n", fwn)
-			}
-
-		}
-
-		return nil
-		/*
-			} else {
-				fmt.Printf("%s is directory\n", path)
-				Logger.LogInfo("Visit", fmt.Sprintf("%s is directory", path))
-				return nil
-			}
-		*/
-	}
-}
 
 func main() {
 
@@ -93,6 +24,8 @@ func main() {
 	dupeids := flag.String("dupeids", "", "")
 	limit := flag.Int("limit", -1, "")
 	savecsv := flag.String("savecsv", "", "")
+	hashid := flag.Int("hashid", -1, "")
+
 
 	flag.Parse()
 
@@ -141,8 +74,13 @@ func main() {
 
 	if clear != nil && *clear != "" {
 		fds.Clear()
-
 	}
+
+
+		if clear != nil && *clear != "" {
+			fds.Clear()
+		}
+
 
 	if dupes != nil && *dupes != "" {
 
@@ -190,14 +128,79 @@ func main() {
 		}
 	}
 
-		if dupeids != nil && *dupeids != "" {
+	if dupeids != nil && *dupeids != "" {
+
+		var file *os.File
+		var writer *csv.Writer
+		var err error
+
+		if(savetocsav){
+			file, err = os.Create("ids.csv")
+			if err != nil {
+				slog.LogError("CreateCSV", fmt.Sprintf("Cannot create file%s", err.Error()))
+				return
+			}
+
+			defer file.Close()
+		}
+
+		fmt.Println("Duplicate Ids: ")
+		limitcount := -1
+		if limit != nil && *limit > 0 {
+			limitcount = *limit
+		}
+
+		results1 := fds.GetDuplicateHashIds(limitcount)
+
+		if(savetocsav){
+				writer = csv.NewWriter(file)
+				defer writer.Flush()
+		}
+
+		var res []string
+		if savetocsav {
+
+			res = []string{}
+			//
+			res = append(res,	"Hash Id")
+			res = append(res,	"Count")
+
+			err := writer.Write(res)
+			if err != nil {
+				slog.LogError("CreateCSV", fmt.Sprintf("Cannot write to file %s", err.Error()))
+				return
+			}
+		}
+
+		for k, v := range results1 {
+			fmt.Printf("%d id = %d \n", k, v)
+			if savetocsav {
+
+				res = []string{}
+				//res = append(res,	fmt.Sprintf("%d", k))
+				res = append(res,	fmt.Sprintf("%d", v.HashId))
+				res = append(res,	fmt.Sprintf("%d", v.Count))
+
+				err := writer.Write(res)
+				if err != nil {
+					slog.LogError("CreateCSV", fmt.Sprintf("Cannot write to file %s", err.Error()))
+					break
+				}
+			}
+
+
+		}
+
+	}
+
+		if hashid != nil && *hashid > 0 {
 
 			var file *os.File
 			var writer *csv.Writer
 			var err error
 
 			if(savetocsav){
-				file, err = os.Create("ids.csv")
+				file, err = os.Create("files.csv")
 				if err != nil {
 					slog.LogError("CreateCSV", fmt.Sprintf("Cannot create file%s", err.Error()))
 					return
@@ -206,13 +209,9 @@ func main() {
 				defer file.Close()
 			}
 
-			fmt.Println("Duplicates: ")
-			limitcount := -1
-			if limit != nil && *limit > 0 {
-				limitcount = *limit
-			}
+			fmt.Println("Files: ")
 
-			results1 := fds.GetDuplicateHashIds(limitcount)
+			results1 := fds.GetFilesByHashId(int64(*hashid))
 
 			if(savetocsav){
 					writer = csv.NewWriter(file)
@@ -225,7 +224,7 @@ func main() {
 				res = []string{}
 				//
 				res = append(res,	"Hash Id")
-				res = append(res,	"Count")
+				res = append(res,	"Files")
 
 				err := writer.Write(res)
 				if err != nil {
@@ -235,13 +234,13 @@ func main() {
 			}
 
 			for k, v := range results1 {
-				fmt.Printf("%d id = %d \n", k, v)
+				fmt.Printf("%d) %d = %s \n", k,*hashid, v)
 				if savetocsav {
 
 					res = []string{}
 					//res = append(res,	fmt.Sprintf("%d", k))
-					res = append(res,	fmt.Sprintf("%d", v.HashId))
-					res = append(res,	fmt.Sprintf("%d", v.Count))
+					res = append(res,	fmt.Sprintf("%d", *hashid))
+					res = append(res, v)
 
 					err := writer.Write(res)
 					if err != nil {
@@ -253,6 +252,6 @@ func main() {
 
 			}
 
+		}
 
-	}
 }
