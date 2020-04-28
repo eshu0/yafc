@@ -1,4 +1,4 @@
-package main
+package yaft
 
 import (
 	"database/sql"

@@ -9,6 +9,7 @@ import (
 
 
 	sl "github.com/eshu0/simplelogger"
+	yaft "github.com/eshu0/yaft/pkg"
 )
 
 func main() {
@@ -41,7 +42,7 @@ func main() {
 	// lets open a flie log using the session
 	slog.OpenAllChannels()
 
-	fds := &DataStorage{}
+	fds := &yaft.DataStorage{}
 	fds.Filename = *dbname
 	fds.Create(&slog)
 
@@ -49,7 +50,7 @@ func main() {
 
 		persist := (cache != nil && *cache != "")
 
-		err := filepath.Walk(*inputdir, WalkDir(fds, &slog, persist))
+		err := filepath.Walk(*inputdir, yaft.WalkDir(fds, &slog, persist))
 		if err != nil {
 			panic(err)
 		}
@@ -105,7 +106,7 @@ func main() {
 
 		results1 := fds.GetDuplicateHashes(limitcount)
 
-		SaveDuplicates("./results.json",&slog,results1)
+		yaft.SaveDuplicates("./results.json",&slog,results1)
 		if(savetocsav){
 				writer = csv.NewWriter(file)
 				defer writer.Flush()
