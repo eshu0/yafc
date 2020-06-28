@@ -45,13 +45,13 @@ func main() {
 
 	fds := &yaft.DataStorage{} 
 	fds.Filename = *dbname
-	fds.Create(&slog)
+	fds.Create(slog)
 
 	if filetofind != nil && *filetofind != "" {
 
 		persist := (cache != nil && *cache != "")
 
-		err := filepath.Walk(*filetofind, yaft.CompareDirectory(fds, &slog))
+		err := filepath.Walk(*filetofind, yaft.CompareDirectory(fds, slog))
 		if err != nil {
 			panic(err)
 		}
@@ -61,7 +61,7 @@ func main() {
 
 		persist := (cache != nil && *cache != "")
 
-		err := filepath.Walk(*inputdir, yaft.WalkDir(fds, &slog, persist))
+		err := filepath.Walk(*inputdir, yaft.WalkDir(fds, slog, persist))
 		if err != nil {
 			panic(err)
 		}
@@ -117,7 +117,7 @@ func main() {
 
 		results1 := fds.GetDuplicateHashes(limitcount)
 
-		yaft.SaveDuplicates("./results.json",&slog,results1)
+		yaft.SaveDuplicates("./results.json",slog,results1)
 		if(savetocsav){
 				writer = csv.NewWriter(file)
 				defer writer.Flush()
