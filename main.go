@@ -26,6 +26,7 @@ func main() {
 	limit := flag.Int("limit", -1, "")
 	savecsv := flag.String("savecsv", "", "")
 	hashid := flag.Int("hashid", -1, "")
+	filetofind := flag.String("file", "", "File to find")
 
 
 	flag.Parse()
@@ -42,9 +43,19 @@ func main() {
 	// lets open a flie log using the session
 	slog.OpenAllChannels()
 
-	fds := &yaft.DataStorage{}
+	fds := &yaft.DataStorage{} 
 	fds.Filename = *dbname
 	fds.Create(&slog)
+
+	if filetofind != nil && *filetofind != "" {
+
+		persist := (cache != nil && *cache != "")
+
+		err := filepath.Walk(*filetofind, yaft.CompareDirectory(fds, &slog))
+		if err != nil {
+			panic(err)
+		}
+	}
 
 	if inputdir != nil && *inputdir != "" {
 

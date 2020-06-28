@@ -14,6 +14,45 @@ func FilenameWithoutExtension(fn string) string {
 	return strings.TrimSuffix(fn, path.Ext(fn))
 }
 
+
+func CompareDirectory(fds *DataStorage, Logger sli.ISimpleLogger) filepath.WalkFunc {
+	return func(path string, info os.FileInfo, err error) error {
+
+		if err != nil {
+			Logger.LogErrorE("Visit", err)
+			return nil
+		}
+		fexts := filepath.Ext(path)
+
+		//fd.FilePath = path
+		abs, err := filepath.Abs(path)
+		if err != nil {
+			Logger.LogErrorE("Visit - Abs", err)
+			return nil
+		}
+
+		if !info.IsDir() {
+			hr := HashRelationship{}
+
+			if hr.GenHashData(Logger, abs, info.IsDir()) {
+				fmt.Printf("%s %s\n", abs, hr.Hash.Data)
+				hr.Path = abs
+				res := fds.FindHashData(hr.Hash.Data)
+				for k, v := range res {
+					fmt.Println("Key ", k)
+					hrs := fds.GetHashRelationshipByHash(v.ID)
+					for _, hr := range hrs {
+						fmt.Println(hr.Path)
+					}
+				}
+			}
+		}
+
+		return nil
+	}
+}
+
+
 func WalkDir(fds *DataStorage, Logger sli.ISimpleLogger, persist bool) filepath.WalkFunc {
 	return func(path string, info os.FileInfo, err error) error {
 
