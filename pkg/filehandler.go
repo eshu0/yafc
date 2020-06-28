@@ -22,7 +22,6 @@ func CompareDirectory(fds *DataStorage, Logger sli.ISimpleLogger) filepath.WalkF
 			Logger.LogErrorE("Visit", err)
 			return nil
 		}
-		fexts := filepath.Ext(path)
 
 		//fd.FilePath = path
 		abs, err := filepath.Abs(path)
