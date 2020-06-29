@@ -38,7 +38,6 @@ func CompareDirectory(fds *DataStorage, Logger sli.ISimpleLogger) filepath.WalkF
 				hr.Path = abs
 				res := fds.FindHashData(hr.Hash.Data)
 				for k, v := range res {
-					fmt.Println("Key ", k)
 					hrs := fds.GetHashRelationshipByHash(v.ID)
 					for _, hr := range hrs {
 						fmt.Println(hr.Path)

@@ -49,8 +49,6 @@ func main() {
 
 	if filetofind != nil && *filetofind != "" {
 
-		persist := (cache != nil && *cache != "")
-
 		err := filepath.Walk(*filetofind, yaft.CompareDirectory(fds, slog))
 		if err != nil {
 			panic(err)
