@@ -51,7 +51,7 @@ func main() {
 	if filetofind != nil && *filetofind != "" {
 		reader := bufio.NewReader(os.Stdin)
 		
-		err := filepath.Walk(*filetofind, yaft.CompareDirectory(fds, slog,deleteifexists, yestoall, reader))
+		err := filepath.Walk(*filetofind, yaft.CompareDirectory(fds, slog, deleteifexists, yestoall, reader))
 		if err != nil {
 			panic(err)
 		}
