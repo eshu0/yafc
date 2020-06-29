@@ -28,7 +28,7 @@ func main() {
 	hashid := flag.Int("hashid", -1, "")
 	filetofind := flag.String("file", "", "File to find")
 	deleteifexists := flag.Bool("die", false, "Delete if exists")
-	yestoall := flag.Bool("y2a", false, "Delete if exists")
+	yestoall := flag.Bool("yta", false, "Delete if exists")
 
 	flag.Parse()
 
@@ -50,6 +50,14 @@ func main() {
 
 	if filetofind != nil && *filetofind != "" {
 		reader := bufio.NewReader(os.Stdin)
+		
+		if deleteifexists != nil && *deleteifexists {
+			fmt.Println("Delete if exists")
+		}
+
+		if yestoall != nil && *yestoall {
+			fmt.Println("Yes to all")
+		}
 		
 		err := filepath.Walk(*filetofind, yaft.CompareDirectory(fds, slog, deleteifexists, yestoall, reader))
 		if err != nil {

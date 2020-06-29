@@ -36,6 +36,8 @@ func CompareDirectory(fds *DataStorage, Logger sli.ISimpleLogger, die *bool, y2a
 
 			if hr.GenHashData(Logger, abs, info.IsDir()) {
 				fmt.Printf("%s %s\n", abs, hr.Hash.Data)
+				Logger.LogInfof("CompareDirectory", "This file %s has hashdata %s \n",abs, hr.Hash.Data)
+
 				hr.Path = abs
 				res := fds.FindHashData(hr.Hash.Data)
 				for _, v := range res {
@@ -43,15 +45,18 @@ func CompareDirectory(fds *DataStorage, Logger sli.ISimpleLogger, die *bool, y2a
 					for _, hr := range hrs {
 						fmt.Println(hr.Path)
 					}
-					if die != nil && *die && len(hrs) > 0{
+					if die != nil && *die && len(hrs) > 0 {
 						if y2a != nil && *y2a {
 							fmt.Printf("(y2a) Deleting file %s: \n",path)
+							Logger.LogInfof("CompareDirectory", "(y2a) Deleting file %s: \n",path)
 
 							err := os.Remove(path)
 							if err != nil {
 								fmt.Println(err)
+								Logger.LogErrorE("CompareDirectory - deleting file", err)
 								return nil
 							}else{
+								Logger.LogInfof("CompareDirectory", "deleted file %s\n",path)
 								fmt.Printf("deleted file %s\n",path)
 							}
 						}else{
@@ -59,11 +64,14 @@ func CompareDirectory(fds *DataStorage, Logger sli.ISimpleLogger, die *bool, y2a
 							text, _ := reader.ReadString('\n')
 							text = strings.Replace(text, "\n", "", -1)
 							if strings.Contains(text, "yes") || strings.Contains(text, "y") {
+								Logger.LogInfof("CompareDirectory", "Deleting file %s: \n",path)
 								err := os.Remove(path)
 								if err != nil {
+									Logger.LogErrorE("CompareDirectory - deleting file", err)
 									fmt.Println(err)
 									return nil
 								}else{
+									Logger.LogInfof("CompareDirectory", "deleted file %s\n",path)
 									fmt.Printf("deleted file %s\n",path)
 								}
 							}else{
