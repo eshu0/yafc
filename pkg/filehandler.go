@@ -16,7 +16,7 @@ func FilenameWithoutExtension(fn string) string {
 }
 
 
-func CompareDirectory(fds *DataStorage, Logger sli.ISimpleLogger, die *bool, reader *bufio.Reader) filepath.WalkFunc {
+func CompareDirectory(fds *DataStorage, Logger sli.ISimpleLogger, die *bool, y2a *bool, reader *bufio.Reader) filepath.WalkFunc {
 	return func(path string, info os.FileInfo, err error) error {
 
 		if err != nil {
@@ -44,10 +44,7 @@ func CompareDirectory(fds *DataStorage, Logger sli.ISimpleLogger, die *bool, rea
 						fmt.Println(hr.Path)
 					}
 					if die != nil && *die && len(hrs) > 0{
-						fmt.Printf("Delete file %s: \n",path)
-						text, _ := reader.ReadString('\n')
-						text = strings.Replace(text, "\n", "", -1)
-						if strings.Contains(text, "yes") || strings.Contains(text, "y") {
+						if y2a != nil && * y2a {
 							err := os.Remove(path)
 							if err != nil {
 								fmt.Println(err)
@@ -56,8 +53,22 @@ func CompareDirectory(fds *DataStorage, Logger sli.ISimpleLogger, die *bool, rea
 								fmt.Printf("deleted file %s\n",path)
 							}
 						}else{
-							fmt.Printf("Not deleting file %s\n",path)
+							fmt.Printf("Delete file %s: \n",path)
+							text, _ := reader.ReadString('\n')
+							text = strings.Replace(text, "\n", "", -1)
+							if strings.Contains(text, "yes") || strings.Contains(text, "y") {
+								err := os.Remove(path)
+								if err != nil {
+									fmt.Println(err)
+									return nil
+								}else{
+									fmt.Printf("deleted file %s\n",path)
+								}
+							}else{
+								fmt.Printf("Not deleting file %s\n",path)
+							}
 						}
+
 					}
 				}
 			}
