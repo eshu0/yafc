@@ -44,7 +44,7 @@ func CompareDirectory(fds *DataStorage, Logger sli.ISimpleLogger, die *bool, y2a
 						fmt.Println(hr.Path)
 					}
 					if die != nil && *die && len(hrs) > 0{
-						if y2a != nil && * y2a {
+						if y2a != nil && *y2a {
 							err := os.Remove(path)
 							if err != nil {
 								fmt.Println(err)
