@@ -45,6 +45,8 @@ func CompareDirectory(fds *DataStorage, Logger sli.ISimpleLogger, die *bool, y2a
 					}
 					if die != nil && *die && len(hrs) > 0{
 						if y2a != nil && *y2a {
+							fmt.Printf("(y2a) Deleting file %s: \n",path)
+
 							err := os.Remove(path)
 							if err != nil {
 								fmt.Println(err)
