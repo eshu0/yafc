@@ -16,7 +16,7 @@ func FilenameWithoutExtension(fn string) string {
 }
 
 
-func CompareDirectory(fds *DataStorage, Logger sli.ISimpleLogger, die *bool, reader bufio.Reader) filepath.WalkFunc {
+func CompareDirectory(fds *DataStorage, Logger sli.ISimpleLogger, die *bool, reader *bufio.Reader) filepath.WalkFunc {
 	return func(path string, info os.FileInfo, err error) error {
 
 		if err != nil {
