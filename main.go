@@ -6,7 +6,7 @@ import (
 	"os"
 	"path/filepath"
 	"encoding/csv"
-
+	"bufio"
 
 	sl "github.com/eshu0/simplelogger"
 	yaft "github.com/eshu0/yaft/pkg"
@@ -27,7 +27,7 @@ func main() {
 	savecsv := flag.String("savecsv", "", "")
 	hashid := flag.Int("hashid", -1, "")
 	filetofind := flag.String("file", "", "File to find")
-
+	deleteifexists := flag.Bool("die", false, "Delete if exists")
 
 	flag.Parse()
 
@@ -48,8 +48,9 @@ func main() {
 	fds.Create(slog)
 
 	if filetofind != nil && *filetofind != "" {
-
-		err := filepath.Walk(*filetofind, yaft.CompareDirectory(fds, slog))
+		reader := bufio.NewReader(os.Stdin)
+		
+		err := filepath.Walk(*filetofind, yaft.CompareDirectory(fds, slog,deleteifexists, reader))
 		if err != nil {
 			panic(err)
 		}

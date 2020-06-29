@@ -6,6 +6,7 @@ import (
 	"path"
 	"path/filepath"
 	"strings"
+	"bufio"
 
 	sli "github.com/eshu0/simplelogger/interfaces"
 )
@@ -15,7 +16,7 @@ func FilenameWithoutExtension(fn string) string {
 }
 
 
-func CompareDirectory(fds *DataStorage, Logger sli.ISimpleLogger) filepath.WalkFunc {
+func CompareDirectory(fds *DataStorage, Logger sli.ISimpleLogger, die *bool, reader bufio.Reader) filepath.WalkFunc {
 	return func(path string, info os.FileInfo, err error) error {
 
 		if err != nil {
@@ -41,6 +42,19 @@ func CompareDirectory(fds *DataStorage, Logger sli.ISimpleLogger) filepath.WalkF
 					hrs := fds.GetHashRelationshipByHash(v.ID)
 					for _, hr := range hrs {
 						fmt.Println(hr.Path)
+					}
+					if die != nil && die && len(hrs) > 0{
+						fmt.Printf("Delete file %s: \n",path)
+						text, _ := reader.ReadString('\n')
+						if text == 'y'{
+							err := os.Remove(path)
+							if err != nil {
+								fmt.Println(err)
+								return nil
+							}else{
+								fmt.Printf("deleted file %s",path)
+							}
+						}
 					}
 				}
 			}
