@@ -43,10 +43,10 @@ func CompareDirectory(fds *DataStorage, Logger sli.ISimpleLogger, die *bool, rea
 					for _, hr := range hrs {
 						fmt.Println(hr.Path)
 					}
-					if die != nil && die && len(hrs) > 0{
+					if die != nil && *die && len(hrs) > 0{
 						fmt.Printf("Delete file %s: \n",path)
 						text, _ := reader.ReadString('\n')
-						if text == 'y'{
+						if text == "y"{
 							err := os.Remove(path)
 							if err != nil {
 								fmt.Println(err)
