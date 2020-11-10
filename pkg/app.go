@@ -4,15 +4,15 @@ import (
 	"flag"
 
 	sl "github.com/eshu0/simplelogger/pkg"
-	yaft "github.com/eshu0/yaft/pkg"
 )
 
 type YAFTApp struct {
 	sl.AppLogger
-	fds DataStorage
+	FDS *DataStorage
+	Savetocsav bool
 }
 
-func (fds *YAFTApp) Create() {
+func (yapp *YAFTApp) Create() {
 	filename := flag.String("logfile", "yaft.log", "Filename out - defaults to yaft.log")
 	session := flag.String("sessionid", "123", "Session - defaults to 123")
 	dbname := flag.String("db", "./yaft.db", "Database defaults to ./yaft.db")
@@ -31,18 +31,13 @@ func (fds *YAFTApp) Create() {
 
 	flag.Parse()
 
-	savetocsav := false
+	yapp.Savetocsav := false
 
 	if savecsv != nil && *savecsv != "" {
-		savetocsav = true
+		yapp.Savetocsav = true
 	}
 
-	slog := sl.NewSimpleLogger(*filename, *session)
-
-	// lets open a flie log using the session
-	slog.OpenAllChannels()
-
-	fds := &yaft.DataStorage{}
-	fds.Filename = *dbname
-	fds.Create(slog)
+	yapp.FDS := &DataStorage{}
+	yapp.FDS.Filename = *dbname
+	yapp.FDS.Create(slog)
 }
