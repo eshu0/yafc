@@ -9,7 +9,6 @@ import (
 	"path/filepath"
 
 	sl "github.com/eshu0/simplelogger/pkg"
-	yaft "github.com/eshu0/yaft/pkg"
 )
 
 type YAFTApp struct {
@@ -45,7 +44,7 @@ func (yapp *YAFTApp) ParseFlags() {
 	yapp.dupes = flag.String("dupes", "", "")
 	yapp.dupeids = flag.String("dupeids", "", "")
 	yapp.Limit = flag.Int("limit", -1, "")
-	savecsv = flag.String("savecsv", "", "")
+	savecsv := flag.String("savecsv", "", "")
 	yapp.Hashid = flag.Int("hashid", -1, "")
 	yapp.Filetofind = flag.String("file", "", "File to find")
 	yapp.Deleteifexists = flag.Bool("die", false, "Delete if exists")
@@ -54,7 +53,7 @@ func (yapp *YAFTApp) ParseFlags() {
 	yapp.Savetocsv = false
 
 	if savecsv != nil && *savecsv != "" {
-		yapp.Savecsv = true
+		yapp.Savetocsv = true
 	}
 
 	flag.Parse()
@@ -80,7 +79,7 @@ func (yapp *YAFTApp) Process() {
 			fmt.Println("Yes to all")
 		}
 
-		err := filepath.Walk(*yapp.Filetofind, yaft.CompareDirectory(yapp.FDS, yapp.Log, yapp.Deleteifexists, yapp.Yestoall, reader))
+		err := filepath.Walk(*yapp.Filetofind, CompareDirectory(yapp.FDS, yapp.Log, yapp.Deleteifexists, yapp.Yestoall, reader))
 		if err != nil {
 			panic(err)
 		}
@@ -90,7 +89,7 @@ func (yapp *YAFTApp) Process() {
 
 		persist := (yapp.cache != nil && *yapp.cache != "")
 
-		err := filepath.Walk(*yapp.inputdir, yaft.WalkDir(yapp.FDS, yapp.Log, persist))
+		err := filepath.Walk(*yapp.inputdir, WalkDir(yapp.FDS, yapp.Log, persist))
 		if err != nil {
 			panic(err)
 		}
@@ -111,10 +110,6 @@ func (yapp *YAFTApp) Process() {
 			fmt.Println(hr)
 		}
 
-	}
-
-	if yapp.clear != nil && *yapp.clear != "" {
-		yapp.FDS.Clear()
 	}
 
 	if yapp.clear != nil && *yapp.clear != "" {
@@ -144,7 +139,7 @@ func (yapp *YAFTApp) Process() {
 
 		results1 := yapp.FDS.GetDuplicateHashes(limitcount)
 
-		yaft.SaveDuplicates("./results.json", yapp.Log, results1)
+		SaveDuplicates("./results.json", yapp.Log, results1)
 		if yapp.Savetocsav {
 			writer = csv.NewWriter(file)
 			defer writer.Flush()
@@ -222,7 +217,7 @@ func (yapp *YAFTApp) Process() {
 
 				err := writer.Write(res)
 				if err != nil {
-					slog.LogError("CreateCSV", fmt.Sprintf("Cannot write to file %s", err.Error()))
+					yapp.LogError("CreateCSV", fmt.Sprintf("Cannot write to file %s", err.Error()))
 					break
 				}
 			}
@@ -240,7 +235,7 @@ func (yapp *YAFTApp) Process() {
 		if savetocsav {
 			file, err = os.Create("files.csv")
 			if err != nil {
-				slog.LogError("CreateCSV", fmt.Sprintf("Cannot create file%s", err.Error()))
+				yapp.LogError("CreateCSV", fmt.Sprintf("Cannot create file%s", err.Error()))
 				return
 			}
 
@@ -249,15 +244,15 @@ func (yapp *YAFTApp) Process() {
 
 		fmt.Println("Files: ")
 
-		results1 := fds.GetFilesByHashId(int64(*hashid))
+		results1 := yapp.FDS.GetFilesByHashId(int64(*yapp.hashid))
 
-		if savetocsav {
+		if yapp.savetocsav {
 			writer = csv.NewWriter(file)
 			defer writer.Flush()
 		}
 
 		var res []string
-		if savetocsav {
+		if yapp.savetocsav {
 
 			res = []string{}
 			//
@@ -266,23 +261,23 @@ func (yapp *YAFTApp) Process() {
 
 			err := writer.Write(res)
 			if err != nil {
-				slog.LogError("CreateCSV", fmt.Sprintf("Cannot write to file %s", err.Error()))
+				yapp.LogError("CreateCSV", fmt.Sprintf("Cannot write to file %s", err.Error()))
 				return
 			}
 		}
 
 		for k, v := range results1 {
-			fmt.Printf("%d) %d = %s \n", k, *hashid, v)
-			if savetocsav {
+			fmt.Printf("%d) %d = %s \n", k, *yapp.hashid, v)
+			if yapp.savetocsav {
 
 				res = []string{}
 				//res = append(res,	fmt.Sprintf("%d", k))
-				res = append(res, fmt.Sprintf("%d", *hashid))
+				res = append(res, fmt.Sprintf("%d", *yapp.hashid))
 				res = append(res, v)
 
 				err := writer.Write(res)
 				if err != nil {
-					slog.LogError("CreateCSV", fmt.Sprintf("Cannot write to file %s", err.Error()))
+					yapp.LogError("CreateCSV", fmt.Sprintf("Cannot write to file %s", err.Error()))
 					break
 				}
 			}
