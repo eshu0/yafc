@@ -133,7 +133,7 @@ func (yapp *YAFTApp) Process() {
 
 		fmt.Println("Duplicates: ")
 		limitcount := -1
-		if yapp.imit != nil && *yapp.limit > 0 {
+		if yapp.limit != nil && *yapp.limit > 0 {
 			limitcount = *yapp.limit
 		}
 
@@ -162,16 +162,16 @@ func (yapp *YAFTApp) Process() {
 		}
 	}
 
-	if dupeids != nil && *dupeids != "" {
+	if yapp.dupeids != nil && *yapp.dupeids != "" {
 
 		var file *os.File
 		var writer *csv.Writer
 		var err error
 
-		if savetocsav {
+		if yapp.savetocsav {
 			file, err = os.Create("ids.csv")
 			if err != nil {
-				slog.LogError("CreateCSV", fmt.Sprintf("Cannot create file%s", err.Error()))
+				yapp.LogError("CreateCSV", fmt.Sprintf("Cannot create file%s", err.Error()))
 				return
 			}
 
@@ -180,19 +180,19 @@ func (yapp *YAFTApp) Process() {
 
 		fmt.Println("Duplicate Ids: ")
 		limitcount := -1
-		if limit != nil && *limit > 0 {
-			limitcount = *limit
+		if yapp.limit != nil && *yapp.limit > 0 {
+			limitcount = *yapp.limit
 		}
 
-		results1 := fds.GetDuplicateHashIds(limitcount)
+		results1 := yapp.FDS.GetDuplicateHashIds(limitcount)
 
-		if savetocsav {
+		if yapp.savetocsav {
 			writer = csv.NewWriter(file)
 			defer writer.Flush()
 		}
 
 		var res []string
-		if savetocsav {
+		if yapp.savetocsav {
 
 			res = []string{}
 			//
@@ -201,14 +201,14 @@ func (yapp *YAFTApp) Process() {
 
 			err := writer.Write(res)
 			if err != nil {
-				slog.LogError("CreateCSV", fmt.Sprintf("Cannot write to file %s", err.Error()))
+				yapp.LogError("CreateCSV", fmt.Sprintf("Cannot write to file %s", err.Error()))
 				return
 			}
 		}
 
 		for k, v := range results1 {
 			fmt.Printf("%d id = %d \n", k, v)
-			if savetocsav {
+			if yapp.savetocsav {
 
 				res = []string{}
 				//res = append(res,	fmt.Sprintf("%d", k))
@@ -226,13 +226,13 @@ func (yapp *YAFTApp) Process() {
 
 	}
 
-	if hashid != nil && *hashid > 0 {
+	if yapp.hashid != nil && *yapp.hashid > 0 {
 
 		var file *os.File
 		var writer *csv.Writer
 		var err error
 
-		if savetocsav {
+		if yapp.savetocsav {
 			file, err = os.Create("files.csv")
 			if err != nil {
 				yapp.LogError("CreateCSV", fmt.Sprintf("Cannot create file%s", err.Error()))
