@@ -9,7 +9,7 @@ import (
 type YAFTApp struct {
 	sl.AppLogger
 	FDS *DataStorage
-	Savetocsav bool
+	Savetocsv bool
 }
 
 func (yapp *YAFTApp) Create() {
@@ -27,14 +27,14 @@ func (yapp *YAFTApp) Create() {
 	hashid := flag.Int("hashid", -1, "")
 	filetofind := flag.String("file", "", "File to find")
 	deleteifexists := flag.Bool("die", false, "Delete if exists")
-	yestoall := flag.Bool("yta", false, "Delete if exists")
+	yapp.Yestoall := flag.Bool("yta", false, "Delete if exists")
 
 	flag.Parse()
 
-	yapp.Savetocsav := false
+	yapp.Savetocsv = false
 
 	if savecsv != nil && *savecsv != "" {
-		yapp.Savetocsav = true
+		yapp.Savetocsv = true
 	}
 
 	yapp.FDS := &DataStorage{}
