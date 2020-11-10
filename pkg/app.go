@@ -17,12 +17,12 @@ type YAFTApp struct {
 	Savetocsv bool
 	//filename *string
 	//session *string
-	dbname         *string
+	DBFileName     *string
 	Inputdir       *string
-	cache          *string
-	list           *string
-	clear          *string
-	dupes          *string
+	Cache          *string
+	List           *string
+	Clear          *string
+	Dupes          *string
 	Dupeids        *string
 	Limit          *int
 	Hashid         *int
@@ -36,12 +36,12 @@ func (yapp *YAFTApp) ParseFlags() {
 	//yapp.filename := flag.String("logfile", "yaft.log", "Filename out - defaults to yaft.log")
 	//yapp.session := flag.String("sessionid", "123", "Session - defaults to 123")
 
-	yapp.dbname = flag.String("db", "./yaft.db", "Database defaults to ./yaft.db")
+	yapp.DBFileName = flag.String("db", "./yaft.db", "Database defaults to ./yaft.db")
 	yapp.Inputdir = flag.String("path", "", "")
-	yapp.cache = flag.String("cache", "", "")
-	yapp.list = flag.String("list", "", "")
-	yapp.clear = flag.String("clear", "", "")
-	yapp.dupes = flag.String("dupes", "", "")
+	yapp.Cache = flag.String("cache", "", "")
+	yapp.List = flag.String("list", "", "")
+	yapp.Clear = flag.String("clear", "", "")
+	yapp.Dupes = flag.String("dupes", "", "")
 	yapp.Dupeids = flag.String("dupeids", "", "")
 
 	yapp.Limit = flag.Int("limit", -1, "")
@@ -60,12 +60,11 @@ func (yapp *YAFTApp) ParseFlags() {
 	}
 
 	flag.Parse()
-
 }
 
 func (yapp *YAFTApp) Create() {
 	yapp.FDS = &DataStorage{}
-	yapp.FDS.Filename = *yapp.dbname
+	yapp.FDS.Filename = *yapp.DBFileName
 	yapp.FDS.Create(yapp.Log)
 }
 
@@ -90,7 +89,7 @@ func (yapp *YAFTApp) Process() {
 
 	if yapp.Inputdir != nil && *yapp.Inputdir != "" {
 
-		persist := (yapp.cache != nil && *yapp.cache != "")
+		persist := (yapp.Cache != nil && *yapp.Cache != "")
 
 		err := filepath.Walk(*yapp.Inputdir, WalkDir(yapp.FDS, yapp.Log, persist))
 		if err != nil {
@@ -98,7 +97,7 @@ func (yapp *YAFTApp) Process() {
 		}
 	}
 
-	if yapp.list != nil && *yapp.list != "" {
+	if yapp.List != nil && *yapp.List != "" {
 		fmt.Println("Listing all ")
 		results := yapp.FDS.GetAllHashData()
 
@@ -115,11 +114,11 @@ func (yapp *YAFTApp) Process() {
 
 	}
 
-	if yapp.clear != nil && *yapp.clear != "" {
+	if yapp.Clear != nil && *yapp.Clear != "" {
 		yapp.FDS.Clear()
 	}
 
-	if yapp.dupes != nil && *yapp.dupes != "" {
+	if yapp.Dupes != nil && *yapp.Dupes != "" {
 
 		var file *os.File
 		var writer *csv.Writer
