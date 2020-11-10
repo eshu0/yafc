@@ -18,12 +18,12 @@ type YAFTApp struct {
 	//filename *string
 	//session *string
 	dbname         *string
-	inputdir       *string
+	Inputdir       *string
 	cache          *string
 	list           *string
 	clear          *string
 	dupes          *string
-	dupeids        *string
+	Dupeids        *string
 	Limit          *int
 	Hashid         *int
 	Filetofind     *string
@@ -37,15 +37,18 @@ func (yapp *YAFTApp) ParseFlags() {
 	//yapp.session := flag.String("sessionid", "123", "Session - defaults to 123")
 
 	yapp.dbname = flag.String("db", "./yaft.db", "Database defaults to ./yaft.db")
-	yapp.inputdir = flag.String("path", "", "")
+	yapp.Inputdir = flag.String("path", "", "")
 	yapp.cache = flag.String("cache", "", "")
 	yapp.list = flag.String("list", "", "")
 	yapp.clear = flag.String("clear", "", "")
 	yapp.dupes = flag.String("dupes", "", "")
-	yapp.dupeids = flag.String("dupeids", "", "")
+	yapp.Dupeids = flag.String("dupeids", "", "")
+
 	yapp.Limit = flag.Int("limit", -1, "")
+
 	savecsv := flag.String("savecsv", "", "")
 	yapp.Hashid = flag.Int("hashid", -1, "")
+
 	yapp.Filetofind = flag.String("file", "", "File to find")
 	yapp.Deleteifexists = flag.Bool("die", false, "Delete if exists")
 	yapp.Yestoall = flag.Bool("yta", false, "Delete if exists")
@@ -89,7 +92,7 @@ func (yapp *YAFTApp) Process() {
 
 		persist := (yapp.cache != nil && *yapp.cache != "")
 
-		err := filepath.Walk(*yapp.inputdir, WalkDir(yapp.FDS, yapp.Log, persist))
+		err := filepath.Walk(*yapp.Inputdir, WalkDir(yapp.FDS, yapp.Log, persist))
 		if err != nil {
 			panic(err)
 		}
@@ -133,8 +136,8 @@ func (yapp *YAFTApp) Process() {
 
 		fmt.Println("Duplicates: ")
 		limitcount := -1
-		if yapp.limit != nil && *yapp.limit > 0 {
-			limitcount = *yapp.limit
+		if yapp.Limit != nil && *yapp.Limit > 0 {
+			limitcount = *yapp.Limit
 		}
 
 		results1 := yapp.FDS.GetDuplicateHashes(limitcount)
@@ -186,7 +189,7 @@ func (yapp *YAFTApp) Process() {
 
 		results1 := yapp.FDS.GetDuplicateHashIds(limitcount)
 
-		if yapp.savetocsav {
+		if yapp.Savetocsv {
 			writer = csv.NewWriter(file)
 			defer writer.Flush()
 		}
