@@ -14,4 +14,5 @@ func main() {
 	// create the database
 	yapp.Create()
 
+	yapp.Process()
 }
