@@ -69,16 +69,17 @@ func (yapp *YAFTApp) Create() {
 }
 
 func (yapp *YAFTApp) Process() {
+	yapp.LogInfo("Process Started")
 
 	if yapp.Filetofind != nil && *yapp.Filetofind != "" {
 		reader := bufio.NewReader(os.Stdin)
 
 		if yapp.Deleteifexists != nil && *yapp.Deleteifexists {
-			fmt.Println("Delete if exists")
+			yapp.LogInfo("Delete if exists")
 		}
 
 		if yapp.Yestoall != nil && *yapp.Yestoall {
-			fmt.Println("Yes to all")
+			yapp.LogInfo("Yes to all")
 		}
 
 		err := filepath.Walk(*yapp.Filetofind, CompareDirectory(yapp.FDS, yapp.Log, yapp.Deleteifexists, yapp.Yestoall, reader))
