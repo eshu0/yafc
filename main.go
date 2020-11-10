@@ -1,19 +1,18 @@
 package main
 
 import (
+	"bufio"
+	"encoding/csv"
 	"flag"
 	"fmt"
 	"os"
 	"path/filepath"
-	"encoding/csv"
-	"bufio"
 
 	sl "github.com/eshu0/simplelogger"
 	yaft "github.com/eshu0/yaft/pkg"
 )
 
 func main() {
-
 	filename := flag.String("logfile", "yaft.log", "Filename out - defaults to yaft.log")
 	session := flag.String("sessionid", "123", "Session - defaults to 123")
 	dbname := flag.String("db", "./yaft.db", "Database defaults to ./yaft.db")
@@ -38,19 +37,18 @@ func main() {
 		savetocsav = true
 	}
 
-
 	slog := sl.NewSimpleLogger(*filename, *session)
 
 	// lets open a flie log using the session
 	slog.OpenAllChannels()
 
-	fds := &yaft.DataStorage{} 
+	fds := &yaft.DataStorage{}
 	fds.Filename = *dbname
 	fds.Create(slog)
 
 	if filetofind != nil && *filetofind != "" {
 		reader := bufio.NewReader(os.Stdin)
-		
+
 		if deleteifexists != nil && *deleteifexists {
 			fmt.Println("Delete if exists")
 		}
@@ -58,7 +56,7 @@ func main() {
 		if yestoall != nil && *yestoall {
 			fmt.Println("Yes to all")
 		}
-		
+
 		err := filepath.Walk(*filetofind, yaft.CompareDirectory(fds, slog, deleteifexists, yestoall, reader))
 		if err != nil {
 			panic(err)
@@ -96,11 +94,9 @@ func main() {
 		fds.Clear()
 	}
 
-
-		if clear != nil && *clear != "" {
-			fds.Clear()
-		}
-
+	if clear != nil && *clear != "" {
+		fds.Clear()
+	}
 
 	if dupes != nil && *dupes != "" {
 
@@ -108,7 +104,7 @@ func main() {
 		var writer *csv.Writer
 		var err error
 
-		if(savetocsav){
+		if savetocsav {
 			file, err = os.Create("results.csv")
 			if err != nil {
 				slog.LogError("CreateCSV", fmt.Sprintf("Cannot create file%s", err.Error()))
@@ -125,10 +121,10 @@ func main() {
 
 		results1 := fds.GetDuplicateHashes(limitcount)
 
-		yaft.SaveDuplicates("./results.json",slog,results1)
-		if(savetocsav){
-				writer = csv.NewWriter(file)
-				defer writer.Flush()
+		yaft.SaveDuplicates("./results.json", slog, results1)
+		if savetocsav {
+			writer = csv.NewWriter(file)
+			defer writer.Flush()
 		}
 
 		for k, v := range results1 {
@@ -154,7 +150,7 @@ func main() {
 		var writer *csv.Writer
 		var err error
 
-		if(savetocsav){
+		if savetocsav {
 			file, err = os.Create("ids.csv")
 			if err != nil {
 				slog.LogError("CreateCSV", fmt.Sprintf("Cannot create file%s", err.Error()))
@@ -172,9 +168,9 @@ func main() {
 
 		results1 := fds.GetDuplicateHashIds(limitcount)
 
-		if(savetocsav){
-				writer = csv.NewWriter(file)
-				defer writer.Flush()
+		if savetocsav {
+			writer = csv.NewWriter(file)
+			defer writer.Flush()
 		}
 
 		var res []string
@@ -182,8 +178,8 @@ func main() {
 
 			res = []string{}
 			//
-			res = append(res,	"Hash Id")
-			res = append(res,	"Count")
+			res = append(res, "Hash Id")
+			res = append(res, "Count")
 
 			err := writer.Write(res)
 			if err != nil {
@@ -198,8 +194,8 @@ func main() {
 
 				res = []string{}
 				//res = append(res,	fmt.Sprintf("%d", k))
-				res = append(res,	fmt.Sprintf("%d", v.HashId))
-				res = append(res,	fmt.Sprintf("%d", v.Count))
+				res = append(res, fmt.Sprintf("%d", v.HashId))
+				res = append(res, fmt.Sprintf("%d", v.Count))
 
 				err := writer.Write(res)
 				if err != nil {
@@ -208,70 +204,68 @@ func main() {
 				}
 			}
 
-
 		}
 
 	}
 
-		if hashid != nil && *hashid > 0 {
+	if hashid != nil && *hashid > 0 {
 
-			var file *os.File
-			var writer *csv.Writer
-			var err error
+		var file *os.File
+		var writer *csv.Writer
+		var err error
 
-			if(savetocsav){
-				file, err = os.Create("files.csv")
-				if err != nil {
-					slog.LogError("CreateCSV", fmt.Sprintf("Cannot create file%s", err.Error()))
-					return
-				}
-
-				defer file.Close()
+		if savetocsav {
+			file, err = os.Create("files.csv")
+			if err != nil {
+				slog.LogError("CreateCSV", fmt.Sprintf("Cannot create file%s", err.Error()))
+				return
 			}
 
-			fmt.Println("Files: ")
+			defer file.Close()
+		}
 
-			results1 := fds.GetFilesByHashId(int64(*hashid))
+		fmt.Println("Files: ")
 
-			if(savetocsav){
-					writer = csv.NewWriter(file)
-					defer writer.Flush()
+		results1 := fds.GetFilesByHashId(int64(*hashid))
+
+		if savetocsav {
+			writer = csv.NewWriter(file)
+			defer writer.Flush()
+		}
+
+		var res []string
+		if savetocsav {
+
+			res = []string{}
+			//
+			res = append(res, "Hash Id")
+			res = append(res, "Files")
+
+			err := writer.Write(res)
+			if err != nil {
+				slog.LogError("CreateCSV", fmt.Sprintf("Cannot write to file %s", err.Error()))
+				return
 			}
+		}
 
-			var res []string
+		for k, v := range results1 {
+			fmt.Printf("%d) %d = %s \n", k, *hashid, v)
 			if savetocsav {
 
 				res = []string{}
-				//
-				res = append(res,	"Hash Id")
-				res = append(res,	"Files")
+				//res = append(res,	fmt.Sprintf("%d", k))
+				res = append(res, fmt.Sprintf("%d", *hashid))
+				res = append(res, v)
 
 				err := writer.Write(res)
 				if err != nil {
 					slog.LogError("CreateCSV", fmt.Sprintf("Cannot write to file %s", err.Error()))
-					return
+					break
 				}
-			}
-
-			for k, v := range results1 {
-				fmt.Printf("%d) %d = %s \n", k,*hashid, v)
-				if savetocsav {
-
-					res = []string{}
-					//res = append(res,	fmt.Sprintf("%d", k))
-					res = append(res,	fmt.Sprintf("%d", *hashid))
-					res = append(res, v)
-
-					err := writer.Write(res)
-					if err != nil {
-						slog.LogError("CreateCSV", fmt.Sprintf("Cannot write to file %s", err.Error()))
-						break
-					}
-				}
-
-
 			}
 
 		}
+
+	}
 
 }
