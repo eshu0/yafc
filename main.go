@@ -13,7 +13,7 @@ import (
 func main() {
 
 	yapp := YAFTApp{}
-	yapp.Create()
+	yapp.ParseFlags()
 
 	if filetofind != nil && *filetofind != "" {
 		reader := bufio.NewReader(os.Stdin)
