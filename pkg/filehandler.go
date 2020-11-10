@@ -8,7 +8,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	sli "github.com/eshu0/simplelogger/interfaces"
+	sli "github.com/eshu0/simplelogger/pkg/interfaces"
 )
 
 func FilenameWithoutExtension(fn string) string {

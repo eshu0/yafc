@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"io/ioutil"
 
-	sli "github.com/eshu0/simplelogger/interfaces"
+	sli "github.com/eshu0/simplelogger/pkg/interfaces"
 	_ "github.com/mattn/go-sqlite3"
 )
 

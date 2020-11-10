@@ -8,7 +8,7 @@ import (
 	"io"
 	"os"
 
-	sli "github.com/eshu0/simplelogger/interfaces"
+	sli "github.com/eshu0/simplelogger/pkg/interfaces"
 	_ "github.com/mattn/go-sqlite3"
 )
 
@@ -19,7 +19,6 @@ const HashToFilesPathColumn = "path"
 const HashToFilesTypeColumn = "type"
 
 const HashToFilesViewDelete = "type"
-
 
 //CREATE VIEW IF NOT EXISTS "+HashToFilesViewDelete+" AS "DELETE FROM " + HashToFilesTableName
 
@@ -136,7 +135,7 @@ func (fds *DataStorage) AddHashRelationship(hr *HashRelationship) { //(int64, []
 }
 
 func (fds *DataStorage) GetFilesByHashId(hashid int64) []string {
-	statement, _ := fds.database.Prepare("SELECT "+ HashToFilesPathColumn +" FROM " + HashToFilesTableName + " WHERE " + HashToFilesHashIDColumn + " = ? ")
+	statement, _ := fds.database.Prepare("SELECT " + HashToFilesPathColumn + " FROM " + HashToFilesTableName + " WHERE " + HashToFilesHashIDColumn + " = ? ")
 	rows, _ := statement.Query(hashid)
 	var path string
 	var results []string
@@ -331,7 +330,7 @@ func (hr *HashRelationship) String() string {
 	return b
 }
 
-func (hr *HashRelationship) CSV() []string{
+func (hr *HashRelationship) CSV() []string {
 	b := []string{}
 	b = append(b, fmt.Sprintf("%d", hr.ID))
 	b = append(b, fmt.Sprintf("%s", hr.Hash))
