@@ -8,15 +8,16 @@ func main() {
 
 	yapp := yaft.YAFTApp{}
 
-	yapp.LogInfo("Parsing Flags")
-
 	// parse the input flags
+	yapp.LogInfo("Parsing Flags")
 	yapp.ParseFlags()
 
-	yapp.LogInfo("Creating Database")
 	// create the database
+	yapp.LogInfo("Creating Database")
 	yapp.Create()
 
 	yapp.LogInfo("Processing")
 	yapp.Process()
+
+	yapp.FinishLogging()
 }
