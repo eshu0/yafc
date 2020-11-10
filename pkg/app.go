@@ -122,7 +122,7 @@ func (yapp *YAFTApp) Process() {
 		var writer *csv.Writer
 		var err error
 
-		if yapp.savetocsav {
+		if yapp.Savetocsv {
 			file, err = os.Create("results.csv")
 			if err != nil {
 				yapp.LogError("CreateCSV", fmt.Sprintf("Cannot create file%s", err.Error()))
@@ -140,7 +140,7 @@ func (yapp *YAFTApp) Process() {
 		results1 := yapp.FDS.GetDuplicateHashes(limitcount)
 
 		SaveDuplicates("./results.json", yapp.Log, results1)
-		if yapp.Savetocsav {
+		if yapp.Savetocsv {
 			writer = csv.NewWriter(file)
 			defer writer.Flush()
 		}
@@ -150,7 +150,7 @@ func (yapp *YAFTApp) Process() {
 			for _, hr := range v {
 				fmt.Println(hr)
 
-				if yapp.Savetocsav {
+				if yapp.Savetocsv {
 					err := writer.Write(hr.CSV())
 					if err != nil {
 						yapp.LogError("CreateCSV", fmt.Sprintf("Cannot write to file %s", err.Error()))
@@ -162,13 +162,13 @@ func (yapp *YAFTApp) Process() {
 		}
 	}
 
-	if yapp.dupeids != nil && *yapp.dupeids != "" {
+	if yapp.Dupeids != nil && *yapp.Dupeids != "" {
 
 		var file *os.File
 		var writer *csv.Writer
 		var err error
 
-		if yapp.savetocsav {
+		if yapp.Savetocsv {
 			file, err = os.Create("ids.csv")
 			if err != nil {
 				yapp.LogError("CreateCSV", fmt.Sprintf("Cannot create file%s", err.Error()))
@@ -180,8 +180,8 @@ func (yapp *YAFTApp) Process() {
 
 		fmt.Println("Duplicate Ids: ")
 		limitcount := -1
-		if yapp.limit != nil && *yapp.limit > 0 {
-			limitcount = *yapp.limit
+		if yapp.Limit != nil && *yapp.Limit > 0 {
+			limitcount = *yapp.Limit
 		}
 
 		results1 := yapp.FDS.GetDuplicateHashIds(limitcount)
@@ -192,7 +192,7 @@ func (yapp *YAFTApp) Process() {
 		}
 
 		var res []string
-		if yapp.savetocsav {
+		if yapp.Savetocsv {
 
 			res = []string{}
 			//
@@ -208,7 +208,7 @@ func (yapp *YAFTApp) Process() {
 
 		for k, v := range results1 {
 			fmt.Printf("%d id = %d \n", k, v)
-			if yapp.savetocsav {
+			if yapp.Savetocsv {
 
 				res = []string{}
 				//res = append(res,	fmt.Sprintf("%d", k))
@@ -226,13 +226,13 @@ func (yapp *YAFTApp) Process() {
 
 	}
 
-	if yapp.hashid != nil && *yapp.hashid > 0 {
+	if yapp.Hashid != nil && *yapp.Hashid > 0 {
 
 		var file *os.File
 		var writer *csv.Writer
 		var err error
 
-		if yapp.savetocsav {
+		if yapp.Savetocsv {
 			file, err = os.Create("files.csv")
 			if err != nil {
 				yapp.LogError("CreateCSV", fmt.Sprintf("Cannot create file%s", err.Error()))
@@ -244,15 +244,15 @@ func (yapp *YAFTApp) Process() {
 
 		fmt.Println("Files: ")
 
-		results1 := yapp.FDS.GetFilesByHashId(int64(*yapp.hashid))
+		results1 := yapp.FDS.GetFilesByHashId(int64(*yapp.Hashid))
 
-		if yapp.savetocsav {
+		if yapp.Savetocsv {
 			writer = csv.NewWriter(file)
 			defer writer.Flush()
 		}
 
 		var res []string
-		if yapp.savetocsav {
+		if yapp.Savetocsv {
 
 			res = []string{}
 			//
@@ -267,12 +267,12 @@ func (yapp *YAFTApp) Process() {
 		}
 
 		for k, v := range results1 {
-			fmt.Printf("%d) %d = %s \n", k, *yapp.hashid, v)
-			if yapp.savetocsav {
+			fmt.Printf("%d) %d = %s \n", k, *yapp.Hashid, v)
+			if yapp.Savetocsv {
 
 				res = []string{}
 				//res = append(res,	fmt.Sprintf("%d", k))
-				res = append(res, fmt.Sprintf("%d", *yapp.hashid))
+				res = append(res, fmt.Sprintf("%d", *yapp.Hashid))
 				res = append(res, v)
 
 				err := writer.Write(res)
