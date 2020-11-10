@@ -3,8 +3,8 @@ package yaft
 import (
 	"database/sql"
 	"encoding/json"
-	"io/ioutil"
 	"fmt"
+	"io/ioutil"
 
 	sli "github.com/eshu0/simplelogger/interfaces"
 	_ "github.com/mattn/go-sqlite3"
@@ -12,7 +12,7 @@ import (
 
 type HashIdnCount struct {
 	HashId int64
-	Count int64
+	Count  int64
 }
 
 func SaveDuplicates(FilePath string, Log sli.ISimpleLogger, hd map[string][]*HashRelationship) bool {
@@ -31,13 +31,13 @@ func SaveDuplicates(FilePath string, Log sli.ISimpleLogger, hd map[string][]*Has
 	return true
 }
 
-func (fds *DataStorage) GetDuplicateHashIds(limit int) []HashIdnCount  {
+func (fds *DataStorage) GetDuplicateHashIds(limit int) []HashIdnCount {
 	var rows *sql.Rows
 
-	if(limit < 0){
+	if limit < 0 {
 		rows, _ = fds.database.Query("SELECT " + HashToFilesHashIDColumn + ", COUNT(" + HashToFilesHashIDColumn + ")  FROM " + HashToFilesTableName + " INNER JOIN " + HashsTableName + " on " + HashsTableName + "." + HashsIDColumn + " = " + HashToFilesTableName + "." + HashToFilesHashIDColumn + " GROUP BY " + HashToFilesHashIDColumn + " HAVING COUNT(" + HashToFilesHashIDColumn + ") > 1")
-	}else{
-		rows, _ = fds.database.Query("SELECT " + HashToFilesHashIDColumn + ", COUNT(" + HashToFilesHashIDColumn + ")  FROM " + HashToFilesTableName + " INNER JOIN " + HashsTableName + " on " + HashsTableName + "." + HashsIDColumn + " = " + HashToFilesTableName + "." + HashToFilesHashIDColumn + " GROUP BY " + HashToFilesHashIDColumn + " HAVING COUNT(" + HashToFilesHashIDColumn + ") > 1 LIMIT " + fmt.Sprintf("%d",limit))
+	} else {
+		rows, _ = fds.database.Query("SELECT " + HashToFilesHashIDColumn + ", COUNT(" + HashToFilesHashIDColumn + ")  FROM " + HashToFilesTableName + " INNER JOIN " + HashsTableName + " on " + HashsTableName + "." + HashsIDColumn + " = " + HashToFilesTableName + "." + HashToFilesHashIDColumn + " GROUP BY " + HashToFilesHashIDColumn + " HAVING COUNT(" + HashToFilesHashIDColumn + ") > 1 LIMIT " + fmt.Sprintf("%d", limit))
 	}
 
 	return fds.ParseDuplicatedHashIDsRows(rows)

@@ -3,15 +3,14 @@ package yaft
 import (
 	"database/sql"
 
-	_ "github.com/mattn/go-sqlite3"
 	sli "github.com/eshu0/simplelogger/interfaces"
-
+	_ "github.com/mattn/go-sqlite3"
 )
 
 type DataStorage struct {
 	database *sql.DB
 	Filename string
-	Log sli.ISimpleLogger
+	Log      sli.ISimpleLogger
 }
 
 func (fds *DataStorage) Create(log sli.ISimpleLogger) {

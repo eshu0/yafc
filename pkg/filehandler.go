@@ -1,12 +1,12 @@
 package yaft
 
 import (
+	"bufio"
 	"fmt"
 	"os"
 	"path"
 	"path/filepath"
 	"strings"
-	"bufio"
 
 	sli "github.com/eshu0/simplelogger/interfaces"
 )
@@ -14,7 +14,6 @@ import (
 func FilenameWithoutExtension(fn string) string {
 	return strings.TrimSuffix(fn, path.Ext(fn))
 }
-
 
 func CompareDirectory(fds *DataStorage, Logger sli.ISimpleLogger, die *bool, y2a *bool, reader *bufio.Reader) filepath.WalkFunc {
 	return func(path string, info os.FileInfo, err error) error {
@@ -36,7 +35,7 @@ func CompareDirectory(fds *DataStorage, Logger sli.ISimpleLogger, die *bool, y2a
 
 			if hr.GenHashData(Logger, abs, info.IsDir()) {
 				fmt.Printf("%s %s\n", abs, hr.Hash.Data)
-				Logger.LogInfof("CompareDirectory", "This file %s has hashdata %s \n",abs, hr.Hash.Data)
+				Logger.LogInfof("CompareDirectory", "This file %s has hashdata %s \n", abs, hr.Hash.Data)
 
 				hr.Path = abs
 				res := fds.FindHashData(hr.Hash.Data)
@@ -47,35 +46,35 @@ func CompareDirectory(fds *DataStorage, Logger sli.ISimpleLogger, die *bool, y2a
 					}
 					if die != nil && *die && len(hrs) > 0 {
 						if y2a != nil && *y2a {
-							fmt.Printf("(y2a) Deleting file %s: \n",path)
-							Logger.LogInfof("CompareDirectory", "(y2a) Deleting file %s: \n",path)
+							fmt.Printf("(y2a) Deleting file %s: \n", path)
+							Logger.LogInfof("CompareDirectory", "(y2a) Deleting file %s: \n", path)
 
 							err := os.Remove(path)
 							if err != nil {
 								fmt.Println(err)
 								Logger.LogErrorE("CompareDirectory - deleting file", err)
 								return nil
-							}else{
-								Logger.LogInfof("CompareDirectory", "deleted file %s\n",path)
-								fmt.Printf("deleted file %s\n",path)
+							} else {
+								Logger.LogInfof("CompareDirectory", "deleted file %s\n", path)
+								fmt.Printf("deleted file %s\n", path)
 							}
-						}else{
-							fmt.Printf("Delete file %s: \n",path)
+						} else {
+							fmt.Printf("Delete file %s: \n", path)
 							text, _ := reader.ReadString('\n')
 							text = strings.Replace(text, "\n", "", -1)
 							if strings.Contains(text, "yes") || strings.Contains(text, "y") {
-								Logger.LogInfof("CompareDirectory", "Deleting file %s: \n",path)
+								Logger.LogInfof("CompareDirectory", "Deleting file %s: \n", path)
 								err := os.Remove(path)
 								if err != nil {
 									Logger.LogErrorE("CompareDirectory - deleting file", err)
 									fmt.Println(err)
 									return nil
-								}else{
-									Logger.LogInfof("CompareDirectory", "deleted file %s\n",path)
-									fmt.Printf("deleted file %s\n",path)
+								} else {
+									Logger.LogInfof("CompareDirectory", "deleted file %s\n", path)
+									fmt.Printf("deleted file %s\n", path)
 								}
-							}else{
-								fmt.Printf("Not deleting file %s\n",path)
+							} else {
+								fmt.Printf("Not deleting file %s\n", path)
 							}
 						}
 
@@ -87,7 +86,6 @@ func CompareDirectory(fds *DataStorage, Logger sli.ISimpleLogger, die *bool, y2a
 		return nil
 	}
 }
-
 
 func WalkDir(fds *DataStorage, Logger sli.ISimpleLogger, persist bool) filepath.WalkFunc {
 	return func(path string, info os.FileInfo, err error) error {
