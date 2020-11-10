@@ -13,10 +13,9 @@ import (
 
 type YAFTApp struct {
 	sl.AppLogger
-	FDS       *DataStorage
-	Savetocsv bool
-	//filename *string
-	//session *string
+
+	FDS            *DataStorage
+	Savetocsv      bool
 	DBFileName     *string
 	Inputdir       *string
 	Cache          *string
@@ -32,9 +31,6 @@ type YAFTApp struct {
 }
 
 func (yapp *YAFTApp) ParseFlags() {
-
-	//yapp.filename := flag.String("logfile", "yaft.log", "Filename out - defaults to yaft.log")
-	//yapp.session := flag.String("sessionid", "123", "Session - defaults to 123")
 
 	yapp.DBFileName = flag.String("db", "./yaft.db", "Database defaults to ./yaft.db")
 	yapp.Inputdir = flag.String("path", "", "")
