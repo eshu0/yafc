@@ -39,7 +39,7 @@ func (fds *Storage) ParseDuplicatedHashIDsRows(rows *sql.Rows) []models.HashIdnC
 	var hashid int64
 	var count int64
 
-	var results []HashIdnCount
+	var results []models.HashIdnCount
 
 	for rows.Next() {
 		rows.Scan(&hashid, &count)
