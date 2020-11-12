@@ -32,6 +32,8 @@ type YAFTApp struct {
 
 func (yapp *YAFTApp) ParseFlags() {
 
+	yapp.LogInfo("ParseFlags Started")
+
 	yapp.DBFileName = flag.String("db", "./yaft.db", "Database defaults to ./yaft.db")
 	yapp.Inputdir = flag.String("path", "", "")
 	yapp.Cache = flag.String("cache", "", "")
@@ -56,26 +58,32 @@ func (yapp *YAFTApp) ParseFlags() {
 	}
 
 	flag.Parse()
+
+	yapp.LogInfo("ParseFlags Finished")
 }
 
 func (yapp *YAFTApp) Create() {
+	yapp.LogInfo("Create", "Creating Database Started")
+
 	yapp.FDS = &DataStorage{}
 	yapp.FDS.Filename = *yapp.DBFileName
 	yapp.FDS.Create(yapp.Log)
+
+	yapp.LogInfo("Create", "Creating Database Finished")
 }
 
 func (yapp *YAFTApp) Process() {
-	yapp.LogInfo("Process Started")
+	yapp.LogInfo("Process", "Process Started")
 
 	if yapp.Filetofind != nil && *yapp.Filetofind != "" {
 		reader := bufio.NewReader(os.Stdin)
 
 		if yapp.Deleteifexists != nil && *yapp.Deleteifexists {
-			yapp.LogInfo("Delete if exists")
+			yapp.LogInfo("Filetofind", "Delete if exists")
 		}
 
 		if yapp.Yestoall != nil && *yapp.Yestoall {
-			yapp.LogInfo("Yes to all")
+			yapp.LogInfo("Filetofind", "Yes to all")
 		}
 
 		err := filepath.Walk(*yapp.Filetofind, CompareDirectory(yapp.FDS, yapp.Log, yapp.Deleteifexists, yapp.Yestoall, reader))
@@ -95,23 +103,24 @@ func (yapp *YAFTApp) Process() {
 	}
 
 	if yapp.List != nil && *yapp.List != "" {
-		fmt.Println("Listing all ")
+		yapp.LogInfo("List", "Listing all ")
 		results := yapp.FDS.GetAllHashData()
 
-		fmt.Println("Hashs: ")
+		yapp.LogInfo("List", "Hashs: ")
 		for _, hd := range results {
-			fmt.Println(hd)
+			yapp.LogInfo("List", hd)
 		}
 
-		fmt.Println("Relations: ")
+		yapp.LogInfo("List", "Relations: ")
 		results2 := yapp.FDS.GetAllHashRelationships()
 		for _, hr := range results2 {
-			fmt.Println(hr)
+			yapp.LogInfo("List", hr)
 		}
 
 	}
 
 	if yapp.Clear != nil && *yapp.Clear != "" {
+		yapp.LogInfo("Clear", "Clearing database")
 		yapp.FDS.Clear()
 	}
 
@@ -124,13 +133,14 @@ func (yapp *YAFTApp) Process() {
 		if yapp.Savetocsv {
 			file, err = os.Create("results.csv")
 			if err != nil {
-				yapp.LogError("CreateCSV", fmt.Sprintf("Cannot create file%s", err.Error()))
+				yapp.LogError("Duplicates", "Cannot create file")
+				yapp.LogErrorE("Duplicates", err)
 				return
 			}
 			defer file.Close()
 		}
 
-		fmt.Println("Duplicates: ")
+		yapp.LogInfo("Duplicates", "Duplicates: ")
 		limitcount := -1
 		if yapp.Limit != nil && *yapp.Limit > 0 {
 			limitcount = *yapp.Limit
@@ -145,14 +155,15 @@ func (yapp *YAFTApp) Process() {
 		}
 
 		for k, v := range results1 {
-			fmt.Println("Key ", k)
+			yapp.LogInfo("Duplicates", "Key ", k)
 			for _, hr := range v {
-				fmt.Println(hr)
+				yapp.LogInfo("Duplicates", hr)
 
 				if yapp.Savetocsv {
 					err := writer.Write(hr.CSV())
 					if err != nil {
-						yapp.LogError("CreateCSV", fmt.Sprintf("Cannot write to file %s", err.Error()))
+						yapp.LogError("Duplicates", "Cannot save to CSV")
+						yapp.LogErrorE("Duplicates", err)
 						break
 					}
 				}
@@ -170,14 +181,15 @@ func (yapp *YAFTApp) Process() {
 		if yapp.Savetocsv {
 			file, err = os.Create("ids.csv")
 			if err != nil {
-				yapp.LogError("CreateCSV", fmt.Sprintf("Cannot create file%s", err.Error()))
+				yapp.LogError("DuplicateIds", "Cannot save to ids.csv")
+				yapp.LogErrorE("DuplicateIds", err)
 				return
 			}
 
 			defer file.Close()
 		}
 
-		fmt.Println("Duplicate Ids: ")
+		yapp.LogInfo("DuplicateIds", "Duplicate Ids: ")
 		limitcount := -1
 		if yapp.Limit != nil && *yapp.Limit > 0 {
 			limitcount = *yapp.Limit
@@ -200,13 +212,14 @@ func (yapp *YAFTApp) Process() {
 
 			err := writer.Write(res)
 			if err != nil {
-				yapp.LogError("CreateCSV", fmt.Sprintf("Cannot write to file %s", err.Error()))
+				yapp.LogError("DuplicateIds", "Cannot save to ids.csv")
+				yapp.LogErrorE("DuplicateIds", err)
 				return
 			}
 		}
 
 		for k, v := range results1 {
-			fmt.Printf("%d id = %d \n", k, v)
+			yapp.LogInfof("DuplicateIds", "%d id = %d \n", k, v)
 			if yapp.Savetocsv {
 
 				res = []string{}
@@ -216,7 +229,8 @@ func (yapp *YAFTApp) Process() {
 
 				err := writer.Write(res)
 				if err != nil {
-					yapp.LogError("CreateCSV", fmt.Sprintf("Cannot write to file %s", err.Error()))
+					yapp.LogError("DuplicateIds", "Cannot save to ids.csv")
+					yapp.LogErrorE("DuplicateIds", err)
 					break
 				}
 			}
@@ -234,14 +248,15 @@ func (yapp *YAFTApp) Process() {
 		if yapp.Savetocsv {
 			file, err = os.Create("files.csv")
 			if err != nil {
-				yapp.LogError("CreateCSV", fmt.Sprintf("Cannot create file%s", err.Error()))
+				yapp.LogError("Hashid", "Cannot save to files.csv")
+				yapp.LogErrorE("Hashid", err)
 				return
 			}
 
 			defer file.Close()
 		}
 
-		fmt.Println("Files: ")
+		yapp.LogInfo("Hashid", "Files: ")
 
 		results1 := yapp.FDS.GetFilesByHashId(int64(*yapp.Hashid))
 
@@ -260,13 +275,14 @@ func (yapp *YAFTApp) Process() {
 
 			err := writer.Write(res)
 			if err != nil {
-				yapp.LogError("CreateCSV", fmt.Sprintf("Cannot write to file %s", err.Error()))
+				yapp.LogError("Hashid", "Cannot save to files.csv")
+				yapp.LogErrorE("Hashid", err)
 				return
 			}
 		}
 
 		for k, v := range results1 {
-			fmt.Printf("%d) %d = %s \n", k, *yapp.Hashid, v)
+			yapp.LogInfof("Hashid", "%d) %d = %s \n", k, *yapp.Hashid, v)
 			if yapp.Savetocsv {
 
 				res = []string{}
@@ -276,7 +292,8 @@ func (yapp *YAFTApp) Process() {
 
 				err := writer.Write(res)
 				if err != nil {
-					yapp.LogError("CreateCSV", fmt.Sprintf("Cannot write to file %s", err.Error()))
+					yapp.LogError("Hashid", "Cannot save to files.csv")
+					yapp.LogErrorE("Hashid", err)
 					break
 				}
 			}
