@@ -303,4 +303,6 @@ func (yapp *YAFTApp) Process() {
 		}
 
 	}
+
+	yapp.LogInfo("Process", "Process Finished")
 }
