@@ -104,7 +104,7 @@ func (fds *Storage) ParseHashRelationshipRows(rows *sql.Rows) []*models.HashRela
 
 	for rows.Next() {
 		rows.Scan(&id, &hashid, &path, &typei)
-		hr := HashRelationship{}
+		hr := models.HashRelationship{}
 		hr.ID = id
 		hr.Path = path
 		hr.Type = typei
@@ -147,8 +147,8 @@ func (fds *Storage) ParseHashRelationshipRows1(rows *sql.Rows) map[string]*model
 	var path string
 	var typei int
 
-	var results map[string]*HashRelationship
-	results = make(map[string]*HashRelationship)
+	var results map[string]*models.HashRelationship
+	results = make(map[string]*models.HashRelationship)
 
 	var lasthash *models.HashData
 
@@ -163,7 +163,7 @@ func (fds *Storage) ParseHashRelationshipRows1(rows *sql.Rows) map[string]*model
 			}
 
 			if results[lasthash.Data] == nil {
-				hr := HashRelationship{}
+				hr := models.HashRelationship{}
 				hr.Hash = lasthash
 				results[lasthash.Data] = &hr
 			}
@@ -173,7 +173,7 @@ func (fds *Storage) ParseHashRelationshipRows1(rows *sql.Rows) map[string]*model
 				lasthash = fds.GetHashData(hashid)
 
 				if results[lasthash.Data] == nil {
-					hr := HashRelationship{}
+					hr := models.HashRelationship{}
 					hr.Hash = lasthash
 					results[lasthash.Data] = &hr
 				}
