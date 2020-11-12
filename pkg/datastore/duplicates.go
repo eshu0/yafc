@@ -22,8 +22,8 @@ func (fds *Storage) GetDuplicateHashIds(limit int) []models.HashIdnCount {
 
 func (fds *Storage) GetDuplicateHashes(limit int) map[string][]*models.HashRelationship {
 	ids := fds.GetDuplicateHashIds(limit)
-	var results map[string][]*HashRelationship
-	results = make(map[string][]*HashRelationship)
+	var results map[string][]*models.HashRelationship
+	results = make(map[string][]*models.HashRelationship)
 
 	for _, id := range ids {
 		hrs := fds.GetHashRelationshipByHash(id.HashId)
@@ -43,7 +43,7 @@ func (fds *Storage) ParseDuplicatedHashIDsRows(rows *sql.Rows) []models.HashIdnC
 
 	for rows.Next() {
 		rows.Scan(&hashid, &count)
-		hic := HashIdnCount{}
+		hic := models.HashIdnCount{}
 		hic.Count = count
 		hic.HashId = hashid
 		results = append(results, hic)
