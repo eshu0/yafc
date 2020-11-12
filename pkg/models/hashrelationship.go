@@ -68,6 +68,22 @@ func (hr *HashRelationship) GenHashData(Logger sli.ISimpleLogger, FilePath strin
 
 }
 
+/*
+func (hr *HashRelationship) addFilepath(Logger sli.ISimpleLogger, path string, isdir bool) {
+
+	files := hr.FilePaths
+	fn := FileData{}
+	fn.ID = -1
+	fn.Path = path
+
+
+
+	files = append(files, &fn)
+	hr.FilePaths = files
+
+}
+*/
+
 func (hr *HashRelationship) String() string {
 	b := ":::: ID ::: \n"
 	b += fmt.Sprintf("\t %d\n", hr.ID)
