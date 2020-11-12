@@ -67,7 +67,7 @@ func (yapp *YAFTApp) Create() {
 
 	yapp.FDS = &DataStorage{}
 	yapp.FDS.Filename = *yapp.DBFileName
-	yapp.FDS.Create(yapp.Log)
+	yapp.FDS.Create()
 
 	yapp.LogInfo("Create", "Creating Database Finished")
 }
