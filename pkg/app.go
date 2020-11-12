@@ -93,7 +93,7 @@ func (yapp *YAFTApp) Process() {
 	}
 
 	if yapp.Inputdir != nil && *yapp.Inputdir != "" {
-
+		yapp.LogInfo("Inputdir", "Input dir")
 		persist := (yapp.Cache != nil && *yapp.Cache != "")
 
 		err := filepath.Walk(*yapp.Inputdir, WalkDir(yapp.FDS, yapp.Log, persist))
