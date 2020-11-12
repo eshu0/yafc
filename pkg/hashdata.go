@@ -27,13 +27,13 @@ func (hd *HashData) String() string {
 func (hd *HashData) Save(FilePath string, Log sli.ISimpleLogger) bool {
 	bytes, err1 := json.MarshalIndent(hd, "", "\t") //json.Marshal(p)
 	if err1 != nil {
-		Log.LogErrorf("SaveToFile()", "Marshal json for %s failed with %s ", FilePath, err1.Error())
+		Log.LogErrorf("Save()", "Marshal json for %s failed with %s ", FilePath, err1.Error())
 		return false
 	}
 
 	err2 := ioutil.WriteFile(FilePath, bytes, 0644)
 	if err2 != nil {
-		Log.LogErrorf("SaveToFile()", "Saving %s failed with %s ", FilePath, err2.Error())
+		Log.LogErrorf("Save()", "Saving %s failed with %s ", FilePath, err2.Error())
 		return false
 	}
 
@@ -53,7 +53,7 @@ func (hd *HashData) LoadHashData(FilePath string, Log sli.ISimpleLogger) (*HashD
 	if ok {
 		bytes, err1 := ioutil.ReadFile(FilePath) //ReadAll(jsonFile)
 		if err1 != nil {
-			Log.LogErrorf("LoadFile()", "Reading '%s' failed with %s ", FilePath, err1.Error())
+			Log.LogErrorf("LoadHashData()", "Reading '%s' failed with %s ", FilePath, err1.Error())
 			return nil, false
 		}
 
@@ -62,20 +62,20 @@ func (hd *HashData) LoadHashData(FilePath string, Log sli.ISimpleLogger) (*HashD
 		err2 := json.Unmarshal(bytes, &vcfs)
 
 		if err2 != nil {
-			Log.LogErrorf("LoadFile()", " Loading %s failed with %s ", FilePath, err2.Error())
+			Log.LogErrorf("LoadHashData()", " Loading %s failed with %s ", FilePath, err2.Error())
 			return nil, false
 		}
 
-		Log.LogDebugf("LoadFile()", "Read ID %d ", vcfs.ID)
-		Log.LogDebugf("LoadFile()", "Read Hash %s ", vcfs.Data)
+		Log.LogDebugf("LoadHashData()", "Read ID %d ", vcfs.ID)
+		Log.LogDebugf("LoadHashData()", "Read Hash %s ", vcfs.Data)
 
 		return &vcfs, true
 	} else {
 
 		if err != nil {
-			Log.LogErrorf("LoadFile()", "'%s' was not found to load with error: %s", FilePath, err.Error())
+			Log.LogErrorf("LoadHashData()", "'%s' was not found to load with error: %s", FilePath, err.Error())
 		} else {
-			Log.LogErrorf("LoadFile()", "'%s' was not found to load", FilePath)
+			Log.LogErrorf("LoadHashData()", "'%s' was not found to load", FilePath)
 		}
 
 		return nil, false
