@@ -1,4 +1,4 @@
-package yaft
+package datastore
 
 import (
 	"database/sql"
@@ -7,20 +7,20 @@ import (
 	_ "github.com/mattn/go-sqlite3"
 )
 
-type DataStorage struct {
+type Storage struct {
 	sl.AppLogger
 	database *sql.DB
 	Filename string
 }
 
-func (fds *DataStorage) Create() {
+func (fds *Storage) Create() {
 	fds.database, _ = sql.Open("sqlite3", fds.Filename)
 	CreateHashsTable(fds)
 	CreateHashRelationshipTable(fds)
 
 }
 
-func (fds *DataStorage) Clear() {
+func (fds *Storage) Clear() {
 	ClearHashData(fds)
 	ClearHashRelationshipTable(fds)
 }

@@ -1,4 +1,4 @@
-package yaft
+package datastore
 
 import (
 	"bufio"
@@ -9,6 +9,7 @@ import (
 	"os"
 
 	sli "github.com/eshu0/simplelogger/pkg/interfaces"
+	"github.com/eshu0/yaft/pkg/models"
 	_ "github.com/mattn/go-sqlite3"
 )
 
@@ -22,14 +23,7 @@ const HashToFilesViewDelete = "type"
 
 //CREATE VIEW IF NOT EXISTS "+HashToFilesViewDelete+" AS "DELETE FROM " + HashToFilesTableName
 
-type HashRelationship struct {
-	ID   int64
-	Path string
-	Type int
-	Hash *HashData
-}
-
-func (hr *HashRelationship) GenHashData(Logger sli.ISimpleLogger, FilePath string, isdir bool) bool {
+func (hr *models.HashRelationship) GenHashData(Logger sli.ISimpleLogger, FilePath string, isdir bool) bool {
 
 	f, err := os.Open(FilePath)
 
@@ -51,7 +45,7 @@ func (hr *HashRelationship) GenHashData(Logger sli.ISimpleLogger, FilePath strin
 		f.Close()
 
 		if hr.Hash == nil {
-			fh := HashData{}
+			fh := models.HashData{}
 			fh.ID = -1
 			fh.Data = fmt.Sprintf("%x", sum)
 			hr.Hash = &fh
@@ -84,17 +78,17 @@ func (hr *HashRelationship) addFilepath(Logger sli.ISimpleLogger, path string, i
 
 }
 */
-func CreateHashRelationshipTable(fds *DataStorage) {
+func CreateHashRelationshipTable(fds *Storage) {
 	statement, _ := fds.database.Prepare("CREATE TABLE IF NOT EXISTS " + HashToFilesTableName + " ([" + HashToFilesIDColumn + "] INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, [" + HashToFilesHashIDColumn + "] INTEGER REFERENCES " + HashsTableName + "(" + HashsIDColumn + ") ,[" + HashToFilesPathColumn + "] TEXT NOT NULL UNIQUE, [" + HashToFilesTypeColumn + "] INTEGER NOT NULL)")
 	statement.Exec()
 }
 
-func ClearHashRelationshipTable(fds *DataStorage) {
+func ClearHashRelationshipTable(fds *Storage) {
 	statement, _ := fds.database.Prepare("DELETE FROM " + HashToFilesTableName)
 	statement.Exec()
 }
 
-func (fds *DataStorage) AddHashRelationship(hr *HashRelationship) { //(int64, []int64) {
+func (fds *Storage) AddHashRelationship(hr *models.HashRelationship) { //(int64, []int64) {
 
 	var hidtoinsert int64
 	//var fidtoinsert int64
@@ -134,7 +128,7 @@ func (fds *DataStorage) AddHashRelationship(hr *HashRelationship) { //(int64, []
 
 }
 
-func (fds *DataStorage) GetFilesByHashId(hashid int64) []string {
+func (fds *Storage) GetFilesByHashId(hashid int64) []string {
 	statement, _ := fds.database.Prepare("SELECT " + HashToFilesPathColumn + " FROM " + HashToFilesTableName + " WHERE " + HashToFilesHashIDColumn + " = ? ")
 	rows, _ := statement.Query(hashid)
 	var path string
@@ -148,25 +142,25 @@ func (fds *DataStorage) GetFilesByHashId(hashid int64) []string {
 	return results
 }
 
-func (fds *DataStorage) GetAllHashRelationships() []*HashRelationship {
+func (fds *Storage) GetAllHashRelationships() []*models.HashRelationship {
 	rows, _ := fds.database.Query("SELECT " + HashToFilesIDColumn + ", " + HashToFilesHashIDColumn + ", " + HashToFilesPathColumn + ", " + HashToFilesTypeColumn + " FROM " + HashToFilesTableName)
 	return fds.ParseHashRelationshipRows(rows)
 }
 
-func (fds *DataStorage) GetHashRelationshipByHash(hashid int64) []*HashRelationship {
+func (fds *Storage) GetHashRelationshipByHash(hashid int64) []*models.HashRelationship {
 	statement, _ := fds.database.Prepare("SELECT " + HashToFilesIDColumn + ", " + HashToFilesHashIDColumn + ", " + HashToFilesPathColumn + ", " + HashToFilesTypeColumn + " FROM " + HashToFilesTableName + " WHERE " + HashToFilesHashIDColumn + " = ? ")
 	rows, _ := statement.Query(hashid)
 	return fds.ParseHashRelationshipRows(rows)
 }
 
-func (fds *DataStorage) ParseHashRelationshipRows(rows *sql.Rows) []*HashRelationship {
+func (fds *Storage) ParseHashRelationshipRows(rows *sql.Rows) []*models.HashRelationship {
 	var id int64
 	var hashid int64
 	var path string
 	var typei int
 
-	var results []*HashRelationship
-	var lasthash *HashData
+	var results []*models.HashRelationship
+	var lasthash *models.HashData
 
 	for rows.Next() {
 		rows.Scan(&id, &hashid, &path, &typei)
@@ -207,7 +201,7 @@ func (fds *DataStorage) ParseHashRelationshipRows(rows *sql.Rows) []*HashRelatio
 	return results
 }
 
-func (fds *DataStorage) ParseHashRelationshipRows1(rows *sql.Rows) map[string]*HashRelationship {
+func (fds *Storage) ParseHashRelationshipRows1(rows *sql.Rows) map[string]*models.HashRelationship {
 	var id int64
 	var hashid int64
 	var path string
@@ -216,7 +210,7 @@ func (fds *DataStorage) ParseHashRelationshipRows1(rows *sql.Rows) map[string]*H
 	var results map[string]*HashRelationship
 	results = make(map[string]*HashRelationship)
 
-	var lasthash *HashData
+	var lasthash *models.HashData
 
 	for rows.Next() {
 		rows.Scan(&id, &hashid, &path, &typei)
