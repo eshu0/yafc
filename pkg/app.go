@@ -9,12 +9,14 @@ import (
 	"path/filepath"
 
 	sl "github.com/eshu0/simplelogger/pkg"
+	"github.com/eshu0/yaft/pkg/datastore"
+	"github.com/eshu0/yaft/pkg/models"
 )
 
 type YAFTApp struct {
 	sl.AppLogger
 
-	FDS            *DataStorage
+	FDS            *datastore.Storage
 	Savetocsv      bool
 	DBFileName     *string
 	Inputdir       *string
@@ -65,7 +67,7 @@ func (yapp *YAFTApp) ParseFlags() {
 func (yapp *YAFTApp) Create() {
 	yapp.LogInfo("Create", "Creating Database Started")
 
-	yapp.FDS = &DataStorage{}
+	yapp.FDS = &datastore.Storage{}
 	yapp.FDS.Filename = *yapp.DBFileName
 	yapp.FDS.Create()
 
@@ -148,7 +150,7 @@ func (yapp *YAFTApp) Process() {
 
 		results1 := yapp.FDS.GetDuplicateHashes(limitcount)
 
-		SaveDuplicates("./results.json", yapp.Log, results1)
+		models.SaveDuplicates("./results.json", yapp.Log, results1)
 		if yapp.Savetocsv {
 			writer = csv.NewWriter(file)
 			defer writer.Flush()
