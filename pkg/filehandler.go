@@ -9,13 +9,15 @@ import (
 	"strings"
 
 	sli "github.com/eshu0/simplelogger/pkg/interfaces"
+	"github.com/eshu0/yaft/pkg/datastore"
+	"github.com/eshu0/yaft/pkg/models"
 )
 
 func FilenameWithoutExtension(fn string) string {
 	return strings.TrimSuffix(fn, path.Ext(fn))
 }
 
-func CompareDirectory(fds *DataStorage, Logger sli.ISimpleLogger, die *bool, y2a *bool, reader *bufio.Reader) filepath.WalkFunc {
+func CompareDirectory(fds *datastore.Storage, Logger sli.ISimpleLogger, die *bool, y2a *bool, reader *bufio.Reader) filepath.WalkFunc {
 	return func(path string, info os.FileInfo, err error) error {
 
 		if err != nil {
@@ -31,7 +33,7 @@ func CompareDirectory(fds *DataStorage, Logger sli.ISimpleLogger, die *bool, y2a
 		}
 
 		if !info.IsDir() {
-			hr := HashRelationship{}
+			hr := models.HashRelationship{}
 
 			if hr.GenHashData(Logger, abs, info.IsDir()) {
 				fmt.Printf("%s %s\n", abs, hr.Hash.Data)
@@ -87,7 +89,7 @@ func CompareDirectory(fds *DataStorage, Logger sli.ISimpleLogger, die *bool, y2a
 	}
 }
 
-func WalkDir(fds *DataStorage, Logger sli.ISimpleLogger, persist bool) filepath.WalkFunc {
+func WalkDir(fds *datastore.Storage, Logger sli.ISimpleLogger, persist bool) filepath.WalkFunc {
 	return func(path string, info os.FileInfo, err error) error {
 
 		if err != nil {
@@ -111,7 +113,7 @@ func WalkDir(fds *DataStorage, Logger sli.ISimpleLogger, persist bool) filepath.
 
 			if filename[0] != '.' {
 				fwn += ".yaft"
-				hd := &HashData{}
+				hd := &models.HashData{}
 				ok, _ := hd.CheckFileExists(fwn)
 				if ok {
 					data, ok := hd.LoadHashData(fwn, Logger)
@@ -120,7 +122,7 @@ func WalkDir(fds *DataStorage, Logger sli.ISimpleLogger, persist bool) filepath.
 					}
 				} else {
 					if !info.IsDir() {
-						hr := HashRelationship{}
+						hr := models.HashRelationship{}
 
 						if hr.GenHashData(Logger, abs, info.IsDir()) {
 							fmt.Printf("%s %s\n", abs, hr.Hash.Data)
