@@ -253,21 +253,3 @@ func (fds *DataStorage) ParseHashRelationshipRows(rows *sql.Rows) map[string]*Ha
 	return results
 }
 */
-func (hr *HashRelationship) String() string {
-	b := ":::: ID ::: \n"
-	b += fmt.Sprintf("\t %d\n", hr.ID)
-	b += ":::: Hash ::: \n"
-	b += fmt.Sprintf("\t %s", hr.Hash)
-	b += ":::: File ::: \n"
-	b += fmt.Sprintf("\t %s\n", hr.Path)
-
-	return b
-}
-
-func (hr *HashRelationship) CSV() []string {
-	b := []string{}
-	b = append(b, fmt.Sprintf("%d", hr.ID))
-	b = append(b, fmt.Sprintf("%s", hr.Hash))
-	b = append(b, fmt.Sprintf("%s", hr.Path))
-	return b
-}
