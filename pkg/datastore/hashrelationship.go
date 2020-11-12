@@ -1,14 +1,9 @@
 package datastore
 
 import (
-	"bufio"
-	"crypto/sha256"
 	"database/sql"
 	"fmt"
-	"io"
-	"os"
 
-	sli "github.com/eshu0/simplelogger/pkg/interfaces"
 	"github.com/eshu0/yaft/pkg/models"
 	_ "github.com/mattn/go-sqlite3"
 )
@@ -23,61 +18,6 @@ const HashToFilesViewDelete = "type"
 
 //CREATE VIEW IF NOT EXISTS "+HashToFilesViewDelete+" AS "DELETE FROM " + HashToFilesTableName
 
-func (hr *models.HashRelationship) GenHashData(Logger sli.ISimpleLogger, FilePath string, isdir bool) bool {
-
-	f, err := os.Open(FilePath)
-
-	if err != nil {
-		Logger.LogErrorE("Visit", err)
-		return false
-	} else {
-
-		input := bufio.NewReader(f)
-
-		hash := sha256.New()
-		if _, err := io.Copy(hash, input); err != nil {
-			Logger.LogErrorE("Visit", err)
-		}
-		sum := hash.Sum(nil)
-
-		//fmt.Printf("%s %x\n", path, sum)
-		Logger.LogInfo("Visit", fmt.Sprintf("%s %x", FilePath, sum))
-		f.Close()
-
-		if hr.Hash == nil {
-			fh := models.HashData{}
-			fh.ID = -1
-			fh.Data = fmt.Sprintf("%x", sum)
-			hr.Hash = &fh
-		}
-
-		//hr.addFilepath(Logger, FilePath, isdir)
-		if isdir {
-			hr.Type = 0
-		} else {
-			hr.Type = 1
-		}
-
-		return true
-	}
-
-}
-
-/*
-func (hr *HashRelationship) addFilepath(Logger sli.ISimpleLogger, path string, isdir bool) {
-
-	files := hr.FilePaths
-	fn := FileData{}
-	fn.ID = -1
-	fn.Path = path
-
-
-
-	files = append(files, &fn)
-	hr.FilePaths = files
-
-}
-*/
 func CreateHashRelationshipTable(fds *Storage) {
 	statement, _ := fds.database.Prepare("CREATE TABLE IF NOT EXISTS " + HashToFilesTableName + " ([" + HashToFilesIDColumn + "] INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, [" + HashToFilesHashIDColumn + "] INTEGER REFERENCES " + HashsTableName + "(" + HashsIDColumn + ") ,[" + HashToFilesPathColumn + "] TEXT NOT NULL UNIQUE, [" + HashToFilesTypeColumn + "] INTEGER NOT NULL)")
 	statement.Exec()
