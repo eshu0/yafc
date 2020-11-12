@@ -3,19 +3,18 @@ package yaft
 import (
 	"database/sql"
 
-	sli "github.com/eshu0/simplelogger/pkg/interfaces"
+	sl "github.com/eshu0/simplelogger/pkg"
 	_ "github.com/mattn/go-sqlite3"
 )
 
 type DataStorage struct {
+	sl.AppLogger
 	database *sql.DB
 	Filename string
-	Log      sli.ISimpleLogger
 }
 
-func (fds *DataStorage) Create(log sli.ISimpleLogger) {
+func (fds *DataStorage) Create() {
 	fds.database, _ = sql.Open("sqlite3", fds.Filename)
-	fds.Log = log
 	CreateHashsTable(fds)
 	CreateHashRelationshipTable(fds)
 
