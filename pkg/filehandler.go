@@ -21,14 +21,14 @@ func CompareDirectory(fds *datastore.Storage, Logger sli.ISimpleLogger, die *boo
 	return func(path string, info os.FileInfo, err error) error {
 
 		if err != nil {
-			Logger.LogErrorE("Visit", err)
+			Logger.LogErrorE("CompareDirectory", err)
 			return nil
 		}
 
 		//fd.FilePath = path
 		abs, err := filepath.Abs(path)
 		if err != nil {
-			Logger.LogErrorE("Visit - Abs", err)
+			Logger.LogErrorE("CompareDirectory - Abs", err)
 			return nil
 		}
 
@@ -36,7 +36,6 @@ func CompareDirectory(fds *datastore.Storage, Logger sli.ISimpleLogger, die *boo
 			hr := models.HashRelationship{}
 
 			if hr.GenHashData(Logger, abs, info.IsDir()) {
-				fmt.Printf("%s %s\n", abs, hr.Hash.Data)
 				Logger.LogInfof("CompareDirectory", "This file %s has hashdata %s \n", abs, hr.Hash.Data)
 
 				hr.Path = abs
@@ -44,24 +43,22 @@ func CompareDirectory(fds *datastore.Storage, Logger sli.ISimpleLogger, die *boo
 				for _, v := range res {
 					hrs := fds.GetHashRelationshipByHash(v.ID)
 					for _, hr := range hrs {
-						fmt.Println(hr.Path)
+						Logger.LogInfo("CompareDirectory", hr.Path)
 					}
 					if die != nil && *die && len(hrs) > 0 {
 						if y2a != nil && *y2a {
-							fmt.Printf("(y2a) Deleting file %s: \n", path)
 							Logger.LogInfof("CompareDirectory", "(y2a) Deleting file %s: \n", path)
 
 							err := os.Remove(path)
 							if err != nil {
-								fmt.Println(err)
 								Logger.LogErrorE("CompareDirectory - deleting file", err)
 								return nil
 							} else {
 								Logger.LogInfof("CompareDirectory", "deleted file %s\n", path)
-								fmt.Printf("deleted file %s\n", path)
 							}
 						} else {
 							fmt.Printf("Delete file %s: \n", path)
+							Logger.LogInfof("CompareDirectory", "Delete file %s: \n", path)
 							text, _ := reader.ReadString('\n')
 							text = strings.Replace(text, "\n", "", -1)
 							if strings.Contains(text, "yes") || strings.Contains(text, "y") {
@@ -69,14 +66,12 @@ func CompareDirectory(fds *datastore.Storage, Logger sli.ISimpleLogger, die *boo
 								err := os.Remove(path)
 								if err != nil {
 									Logger.LogErrorE("CompareDirectory - deleting file", err)
-									fmt.Println(err)
 									return nil
 								} else {
 									Logger.LogInfof("CompareDirectory", "deleted file %s\n", path)
-									fmt.Printf("deleted file %s\n", path)
 								}
 							} else {
-								fmt.Printf("Not deleting file %s\n", path)
+								Logger.LogInfof("CompareDirectory", "Not deleted file %s\n", path)
 							}
 						}
 
@@ -93,7 +88,7 @@ func WalkDir(fds *datastore.Storage, Logger sli.ISimpleLogger, persist bool) fil
 	return func(path string, info os.FileInfo, err error) error {
 
 		if err != nil {
-			Logger.LogErrorE("Visit", err)
+			Logger.LogErrorE("WalkDir", err)
 			return nil
 		}
 		fexts := filepath.Ext(path)
@@ -103,13 +98,13 @@ func WalkDir(fds *datastore.Storage, Logger sli.ISimpleLogger, persist bool) fil
 			//fd.FilePath = path
 			abs, err := filepath.Abs(path)
 			if err != nil {
-				Logger.LogErrorE("Visit - Abs", err)
+				Logger.LogErrorE("WalkDir - Abs", err)
 				return nil
 			}
 
 			fwn := FilenameWithoutExtension(abs)
 			filename := filepath.Base(abs)
-			fmt.Println("Filename:", filename)
+			Logger.LogInfof("WalkDir", "Filename: %s", filename)
 
 			if filename[0] != '.' {
 				fwn += ".yaft"
@@ -125,7 +120,8 @@ func WalkDir(fds *datastore.Storage, Logger sli.ISimpleLogger, persist bool) fil
 						hr := models.HashRelationship{}
 
 						if hr.GenHashData(Logger, abs, info.IsDir()) {
-							fmt.Printf("%s %s\n", abs, hr.Hash.Data)
+							Logger.LogInfof("WalkDir", "%s %s\n", abs, hr.Hash.Data)
+
 							hr.Path = abs
 							fds.AddHashRelationship(&hr)
 							if persist {
@@ -135,7 +131,7 @@ func WalkDir(fds *datastore.Storage, Logger sli.ISimpleLogger, persist bool) fil
 					}
 				}
 			} else {
-				fmt.Printf("Hidden file %s \n", fwn)
+				Logger.LogInfof("WalkDir", "Hidden file %s \n", fwn)
 			}
 
 		}
